@@ -1,24 +1,12 @@
-This is the **match** asset for TMC's **Dot** collection. It is the loop a session actually runs on, counted in ticks so the round clock and the netcode agree about what time it is.
+# dot-match
 
-This collection of assets provides modular building blocks for creating games and applications within the TMC ecosystem, ensuring consistency and interoperability across all `dot-*` assets. This includes core functionality, networking, authentication, cloud integration, and more.
+The match loop for a Godot 4 multiplayer game: warmup, rounds, scoring, teams, spawning and respawning. Everything is counted in ticks and driven by one call, so a server's round clock and its netcode agree on what time it is. It needs only [dot-core](https://github.com/modcommunity/dot-core). Part of TMC's open source **Dot** collection (MIT licence).
 
-**These assets are COMPLETELY OPEN SOURCE**. You are free to use, modify, and distribute them under the terms of the MIT license. The only thing not open source is the back-end web infrastructure. So if you opt into using your own authentication backend instead of integrating with TMC, you will need to build and integrate your own back-end infrastructure.
-
-## From Maintainer & WARNING
-This asset, along with all the others, was built initially with **Claude Code** and will continue to be maintained and extended using it. This is because I (`gamemann`) cannot build the entire TMC platform alone (I wish I could lol).
-
-**Please treat this as partially tested.** Every asset has its own headless test suite and those suites pass, but very little of this has been in front of real players yet. Expect rough edges, and please report anything you run into.
-
-I intend on reviewing code, testing, and editing documentation regularly. If you're interested in helping out, please let me know!
-
-## The Match Loop
-The match loop for a Godot 4 multiplayer game: warmup, rounds, scoring, teams, spawning and respawning. Everything counted in ticks and driven by one call, so a server's round clock and its netcode agree about what time it is.
-
-Part of the [dot-*](https://github.com/modcommunity) family. Needs **dot-core** and nothing else.
+> Built with Claude Code. Every addon has a headless test suite and the suites pass, but little of this has met real players yet. Please report rough edges.
 
 ## Install
 
-Copy `addons/dot_match/` and `addons/dot_core/` into your project and enable both in *Project → Project Settings → Plugins*.
+Copy `addons/dot_match/` and `addons/dot_core/` into your project and enable both under **Project > Project Settings > Plugins**.
 
 ## Use
 
@@ -39,55 +27,92 @@ match_node.tick(tick)
 match_node.report_kill(killer_key, victim_key, &"rifle", tick, headshot)
 ```
 
-## The idea
+## How a match runs
 
-A match is a state machine, `WARMUP → COUNTDOWN → LIVE → INTERMISSION → MATCH_END`, and **one call moves it**. No `Timer`, no `_process`, no wall clock.
+A match is a state machine: `WARMUP`, `COUNTDOWN`, `LIVE`, `INTERMISSION`, `MATCH_END`. One call, `tick()`, moves it. There is no `Timer`, no `_process` and no wall clock. A match that ticks itself runs on the engine's schedule, not the simulation's, and a round timer and a netcode that disagree produce a round that ends on a different tick for every client.
 
-A match that ticks itself ticks on whatever schedule the engine gives it, which is not the schedule the simulation runs on. A server whose round timer and whose netcode disagree about what time it is produces a round that ends on a different tick for every client.
+- **Warmup** is the only open wait. It runs on `start()` and whenever the server drops below `min_players`.
+- **Countdown** comes before every other round. The round resets, every present player is placed at a round spawn (`respawn_due`) and held still. `is_frozen()` is true for exactly this state when `rules.freeze_during_countdown` is on, `freeze_changed(frozen)` announces the changes, and `round_started` fires at `LIVE` without respawning anyone. dot-match owns no bodies, so your game freezes its controllers.
 
-**One warmup, then a frozen countdown.** `WARMUP` is the only open wait: it runs on `start()` and when the server drops below `min_players`. Every round after it, whether it follows warmup, an intermission or a match end with players still present, goes through `COUNTDOWN` (`countdown_sec`, default 5): the round is reset, every present player is placed at a round spawn (`respawn_due`) and held still. `is_frozen()` is true for exactly that state (when `rules.freeze_during_countdown`), `freeze_changed(frozen)` announces the edges, and `round_started` fires at `LIVE` without respawning anyone. A player who joins or dies during the countdown is placed frozen too. dot-match owns no bodies, so the game freezes its controllers.
+What winning means lives in a `DotMatchRules` resource. `DotMatch` never asks which mode it runs.
 
-What *winning* means lives in a `DotMatchRules` resource. `DotMatch` never asks what mode it is running.
+## What is in it
 
-## What is in the box
-
-| | |
+| Piece | What it does |
 | --- | --- |
-| `DotMatch` | The state machine. Rounds, clocks, respawns, and the win check. |
-| `DotMatchRules` | What winning means and what a kill is worth. Subclass for a new mode. |
-| `DotRulesElimination` | A worked subclass: the round ends when one side is wiped. |
-| `DotScoreboard` / `DotPlayerScore` | Who is playing and how they are doing. Survives reconnects. |
-| `DotTeam` / `DotTeamManager` | Sides, assignment, and deterministic autobalance. |
-| `DotKillFeed` | The last few kills, as data rather than as formatted strings. |
-| `DotSpawnPoint` / `DotSpawnSelector` | Where a player appears, and why that one. |
+| `DotMatch` | The state machine: rounds, clocks, respawns and the win check. |
+| `DotMatchRules` | What winning means and what a kill is worth. Presets `deathmatch(limit)` and `team_deathmatch(limit)`; subclass for a new mode. |
+| `DotRulesElimination` | A worked subclass: the round ends when one side is wiped out. |
+| `DotScoreboard`, `DotPlayerScore` | Who is playing and how they are doing. Survives reconnects. |
+| `DotTeam`, `DotTeamManager` | Sides, assignment and deterministic autobalance. |
+| `DotKillFeed` | The last few kills as data, not formatted strings. |
+| `DotSpawnPoint`, `DotSpawnSelector` | Where a player appears, and why that point. |
 | `DotRespawnQueue` | Who is waiting to come back, counted against a target tick. |
 | `DotMatchNetSync` | What to replicate, without naming a dot-net type. |
 
-## Three failure modes it is built around
+## Settings
 
-**A scoreboard that rewards rage-quitting.** Records survive a disconnection and a reconnecting player gets their kills back. They are keyed by a stable player key, never a peer id. A peer id is reassigned the moment someone reconnects, and a scoreboard keyed by one hands the next player to join the previous player's kills.
+### Rules (`DotMatchRules`, one per mode)
 
-**Two machines that disagree.** Every ordering decision has an explicit tie-break: ranked scoreboards fall back to the player key, spawn selection to the node name, team assignment to the lower team id, respawn batches to a sort. Left to dictionary iteration order, a server and a client produce different answers, and for team assignment that means they disagree about friendly fire.
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `score_limit` | 30 | Score that ends the match. 0 = no limit. |
+| `time_limit_sec` | 600 | Match length in seconds. 0 = no limit. |
+| `rounds_to_win` | 1 | Rounds a side needs to win the match. |
+| `kill_points` | 1 | Points per kill. |
+| `suicide_points` | -1 | Points for a suicide. |
+| `friendly_points` | -1 | Points for killing a team-mate. |
+| `assist_points` | 0 | Points per assist. |
+| `friendly_kills_count` | false | Whether team kills count toward the team score. |
+| `respawn_delay_sec` | 3.0 | Seconds before a dead player returns. |
+| `respawn_disabled` | false | No respawns until the round ends. |
+| `spawn_protection_sec` | 2.0 | Seconds of protection after spawning. |
+| `warmup_sec` | 30 | Warmup length. |
+| `min_players` | 2 | Players needed to leave warmup. |
+| `countdown_sec` | 5 | Frozen countdown before each round. |
+| `freeze_during_countdown` | true | Hold players still during the countdown. |
+| `intermission_sec` | 10 | Pause between rounds. |
+| `match_end_sec` | 20 | Pause at the end of a match. |
+| `pause_when_empty` | true | Drop back to warmup when players fall below `min_players`. Turn off for scheduled matches and tests with no players. |
+| `team_based` | false | Whether the mode has sides. |
 
-**A round that never ends.** `DotRulesElimination` treats *zero* teams standing as the end of the round, not as "keep going". A grenade that kills the last player on both sides happens often enough to matter, and waiting for a side that no longer exists is a server that has to be restarted.
+### Server (`DotMatchConfig`)
+
+Layered like every Dot config: defaults, JSON file, `DOT_MATCH_*` environment, `--match-*` command line.
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `tick_rate` | 64 | Must match whatever calls `tick()`. Durations are converted with it. |
+| `auto_start` | true | Start warmup as soon as the node is ready. |
+| `balance_between_rounds` | true | Rebalance teams at round start only, never mid-fight. |
+| `idle_seconds` | 180 | Seconds of doing nothing before a player is marked idle. 0 = off. dot-match only marks them; what to do is dot-server's policy. |
+| `respawn_delay_sec` | -1 | Replaces the rules' value when 0 or more. |
+| `respawn_disabled` | -1 | -1 keeps the rules' value, 0 respawns, 1 does not. |
+| `friendly_points` | -101 | Replaces the rules' value when -100 or more. |
+| `log_transitions` | true | Log every state change at info level. |
+
+## Three problems it is built around
+
+- **A scoreboard that rewards rage-quitting.** Records are keyed by a stable player key, never a peer id, so a reconnecting player gets their kills back and the next player to join does not inherit someone else's.
+- **Two machines that disagree.** Every ordering has an explicit tie-break: scoreboards fall back to the player key, spawn selection to the node name, team assignment to the lower team id, respawn batches to a sort. Dictionary order would make a server and client disagree, which for team assignment means disagreeing about friendly fire.
+- **A round that never ends.** `DotRulesElimination` treats zero teams standing as the end of the round. A grenade that kills the last player on both sides would otherwise leave a server waiting for a side that no longer exists.
 
 ## Spawning
 
-The default rule is furthest-from-the-nearest-threat among the available points, and threats are **enemies only**, because spawning people away from their own team scatters a squad across the map. Points have a cooldown, which is what stops two players spawning inside each other.
+The default picks the available point furthest from the nearest enemy. Only enemies count as threats, because spawning away from your own team scatters a squad. Points have a cooldown so two players do not spawn inside each other. When every point is on cooldown or occupied, the selector falls back and spawns someone anyway, since a player who stays dead until a point frees up is worse than a bad spawn.
 
-When every point is on cooldown or occupied, the selector falls back and spawns someone anyway. **Spawning badly beats not spawning at all**: the alternative is a player who is dead until a point frees up, which on a busy map with a short round is the rest of the match.
+## More
 
-## Validating
+[docs/design.md](docs/design.md) explains the choices and [docs/history.md](docs/history.md) lists bugs worth recognising if they return.
+
+## Testing
 
 ```bash
 godot --headless --path . --import
-find . -name '*.gd' -not -path './.godot/*' | while read f; do
-    godot --headless --path . --check-only --script "res://${f#./}"
-done
 godot --headless --path . res://examples/match_selftest.tscn
 ```
 
-`match_selftest`, all offline. Exits non-zero on any failure.
+All offline. Exits non-zero on any failure.
 
 ## Licence
 
