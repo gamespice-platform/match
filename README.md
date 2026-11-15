@@ -76,7 +76,7 @@ What winning means lives in a `DotMatchRules` resource. `DotMatch` never asks wh
 
 ### Server (`DotMatchConfig`)
 
-Layered like every Dot config: defaults, JSON file, `DOT_MATCH_*` environment, `--match-*` command line.
+Layered like every Gamespice config: defaults, JSON file, `DOT_MATCH_*` environment, `--match-*` command line.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
