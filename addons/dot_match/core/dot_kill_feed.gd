@@ -13,7 +13,8 @@ extends Node
 
 signal entry_added(entry: Entry)
 
-@export_range(4, 256, 4) var capacity: int = 32
+## Entries kept; the oldest goes past it (a display ring, so no warning). Default 32, 0 = unlimited.
+@export_range(0, 256, 4, "or_greater") var capacity: int = 32
 
 
 ## One line. Kept as data rather than as a formatted string so a client can render it
@@ -63,7 +64,7 @@ func add(entry: Entry) -> void:
 
 	_entries.append(entry)
 
-	while _entries.size() > capacity:
+	while capacity > 0 and _entries.size() > capacity:
 		_entries.remove_at(0)
 
 	entry_added.emit(entry)

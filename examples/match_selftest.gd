@@ -15,7 +15,7 @@ extends Node
 
 const TICK_RATE := 60
 
-const CHECKS := 170
+const CHECKS := 173
 
 ## Sections entered against sections that ran to their last line, and against this. A
 ## runtime error inside a section aborts that function and nothing says so; a section that
@@ -301,6 +301,11 @@ func _test_scoreboard_reconnect() -> void:
 	small.find("player_0").last_active_tick = 0
 	small.record_for("overflow2")
 	_check(small.find("player_0") == null, "but does evict an absent one")
+	_check(small.evicted == 1, "and counts the eviction")
+	small.max_records = 0
+	for index in range(20):
+		small.record_for("more_%d" % index)
+	_check(small.evicted == 1 and small.find("more_0") != null, "max_records 0 keeps every record")
 
 	board.queue_free()
 	remove_child(board)
@@ -342,6 +347,10 @@ func _test_kill_feed() -> void:
 	_check(feed.entries().size() == 4, "the feed is bounded", str(feed.entries().size()))
 	_check(feed.recent(2).size() == 2, "and can be read from the end")
 	_check(feed.since(205).size() == 4, "and from a tick")
+	feed.capacity = 0
+	for index in range(10):
+		feed.add_kill(killer, victim, &"rifle", 300 + index)
+	_check(feed.entries().size() == 14, "capacity 0 keeps every entry", str(feed.entries().size()))
 
 	feed.queue_free()
 	remove_child(feed)

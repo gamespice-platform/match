@@ -26,8 +26,15 @@ signal score_changed(record: DotPlayerScore)
 @export_group("Limits")
 
 ## Records kept at once, including absent ones. Above any real server on purpose: this
-## is a bound against a churn of thousands of joins, not a player cap.
-@export_range(8, 4096, 8) var max_records: int = 512
+## is a bound against a churn of thousands of joins, not a player cap. Default 512, 0 =
+## unlimited; past it the longest-absent record goes, with a rate-limited warning.
+@export_range(0, 4096, 8, "or_greater") var max_records: int = 512
+
+## Absent records evicted past [member max_records], since start.
+var evicted: int = 0
+## Eviction warning rate limit: last warning (msec) and evictions since it.
+var _evict_warn_ms: int = -1
+var _evict_unwarned: int = 0
 
 ## key -> [DotPlayerScore].
 var _records: Dictionary = {}
@@ -49,7 +56,7 @@ func record_for(key: String, display_name: String = "") -> DotPlayerScore:
 			record.display_name = display_name
 		return record
 
-	if _records.size() >= max_records:
+	if max_records > 0 and _records.size() >= max_records:
 		_evict_absent()
 
 	record = DotPlayerScore.make(key, display_name)
@@ -105,11 +112,7 @@ func _evict_absent() -> void:
 			absent.append(key)
 
 	if absent.is_empty():
-		DotLog.warn(
-			CHANNEL,
-			"scoreboard is full and every record is present; not evicting",
-			{"records": _records.size()}
-		)
+		_warn_full("scoreboard is full and every record is present; not evicting (max_records, 0 = unlimited)")
 		return
 
 	absent.sort_custom(func(a: String, b: String) -> bool:
@@ -118,6 +121,19 @@ func _evict_absent() -> void:
 	)
 
 	_records.erase(absent[0])
+	evicted += 1
+	_evict_unwarned += 1
+	_warn_full("scoreboard full: absent players' scores evicted (raise max_records, 0 = unlimited)")
+
+
+func _warn_full(text: String) -> void:
+	var now_ms := Time.get_ticks_msec()
+	if _evict_warn_ms >= 0 and now_ms - _evict_warn_ms < 10000:
+		return
+	_evict_warn_ms = now_ms
+	DotLog.warn(CHANNEL, text, {"records": _records.size(), "max_records": max_records,
+		"evicted_since_last_warning": _evict_unwarned, "evicted_total": evicted})
+	_evict_unwarned = 0
 
 
 # --- Events ----------------------------------------------------------------
