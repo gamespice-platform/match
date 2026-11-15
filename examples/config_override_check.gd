@@ -1,10 +1,6 @@
 extends Node
 
-## DotMatchConfig's rule overrides, offline. With dot-game, dot-profile and dot-server linked into addons/ (gitignored) it also runs them through DotGameConfigBinder's cvars.
-##
-## [codeblock]
-## godot --headless --path . res://examples/config_override_check.tscn
-## [/codeblock]
+## DotMatchConfig's rule overrides, offline; also DotGameConfigBinder's cvars when dot-game, dot-profile and dot-server are linked into addons/. Run: godot --headless --path . res://examples/config_override_check.tscn
 
 const TICK_RATE := 60
 const BINDER := "res://addons/dot_game/runtime/dot_game_config_binder.gd"

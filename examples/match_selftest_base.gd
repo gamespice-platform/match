@@ -11,7 +11,7 @@ var _entered := 0
 var _completed := 0
 
 
-# --- Assertions ------------------------------------------------------------
+# Assertions
 
 func _section(title: String) -> void:
 	_entered += 1
@@ -43,7 +43,7 @@ func _group(title: String) -> void:
 	print("%s" % title)
 
 
-# --- Fixtures --------------------------------------------------------------
+# Fixtures
 
 func _make_match(rules: DotMatchRules, with_teams: bool = false) -> DotMatch:
 	var node := DotMatch.new()
