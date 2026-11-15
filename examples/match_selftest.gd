@@ -1,4 +1,4 @@
-extends Node
+extends "res://examples/match_selftest_base.gd"
 
 ## Exercises everything in dot-match, offline and headless.
 ##
@@ -13,8 +13,6 @@ extends Node
 ## player someone else's kills, an autobalancer that switches the same person twice,
 ## and two machines that disagree about which spawn point was chosen.
 
-const TICK_RATE := 60
-
 const CHECKS := 173
 
 ## Sections entered against sections that ran to their last line, and against this. A
@@ -22,12 +20,6 @@ const CHECKS := 173
 ## bailed out early after a failed guard is counted as not finished on purpose. The CHECKS
 ## total is the other half — see docs/testing.md.
 const SECTIONS := 20
-
-var _passed := 0
-var _failed := 0
-var _failures := PackedStringArray()
-var _entered := 0
-var _completed := 0
 
 
 func _ready() -> void:
@@ -83,79 +75,6 @@ func _run() -> void:
 		get_tree().quit(1)
 		return
 	get_tree().quit(1 if _failed > 0 else 0)
-
-
-# --- Assertions ------------------------------------------------------------
-
-func _section(title: String) -> void:
-	_entered += 1
-	_group(title)
-
-
-## A section reached its last line. See [constant SECTIONS].
-func _done() -> void:
-	_completed += 1
-
-
-func _check(condition: bool, what: String, detail: String = "") -> bool:
-	if condition:
-		_passed += 1
-		print("  ok    %s" % what)
-	else:
-		_failed += 1
-		_failures.append(what if detail == "" else "%s — %s" % [what, detail])
-		print("  FAIL  %s%s" % [what, "" if detail == "" else " — " + detail])
-	return condition
-
-
-func _close(a: float, b: float, what: String, epsilon: float = 0.01) -> bool:
-	return _check(absf(a - b) <= epsilon, what, "%.3f vs %.3f" % [a, b])
-
-
-func _group(title: String) -> void:
-	print("")
-	print("%s" % title)
-
-
-# --- Fixtures --------------------------------------------------------------
-
-func _make_match(rules: DotMatchRules, with_teams: bool = false) -> DotMatch:
-	var node := DotMatch.new()
-	node.register_service = false
-	node.rules = rules
-	node.config = DotMatchConfig.new()
-	node.config.tick_rate = TICK_RATE
-	node.config.auto_start = false
-	node.config.log_transitions = false
-	node.config.idle_seconds = 0.0
-
-	if with_teams:
-		var manager := DotTeamManager.new()
-		manager.teams = DotTeam.standard_pair()
-		node.teams = manager
-		node.add_child(manager)
-
-	add_child(node)
-	return node
-
-
-func _quick_rules(limit: int = 3) -> DotMatchRules:
-	var rules := DotMatchRules.deathmatch(limit)
-	rules.warmup_sec = 1.0
-	rules.countdown_sec = 0.5
-	rules.time_limit_sec = 10.0
-	rules.min_players = 2
-	rules.respawn_delay_sec = 0.5
-	rules.intermission_sec = 1.0
-	rules.match_end_sec = 1.0
-	return rules
-
-
-## Runs the match forward, one tick at a time, from [param from] for [param ticks].
-func _advance(node: DotMatch, from: int, ticks: int) -> int:
-	for offset in range(ticks):
-		node.tick(from + offset)
-	return from + ticks
 
 
 # --- Teams -----------------------------------------------------------------
@@ -394,25 +313,6 @@ func _test_respawn_queue() -> void:
 
 
 # --- Spawning --------------------------------------------------------------
-
-func _make_spawns(count: int, spacing: float = 10.0) -> Array[DotSpawnPoint]:
-	var out: Array[DotSpawnPoint] = []
-
-	for index in range(count):
-		var point := DotSpawnPoint.make(Vector3(float(index) * spacing, 0.0, 0.0))
-		point.name = "Spawn%02d" % index
-		point.cooldown_ticks = 60
-		add_child(point)
-		out.append(point)
-
-	return out
-
-
-func _free_spawns(points: Array[DotSpawnPoint]) -> void:
-	for point in points:
-		point.queue_free()
-		remove_child(point)
-
 
 func _test_spawn_points() -> void:
 	_section("spawn points")
