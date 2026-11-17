@@ -8,7 +8,7 @@ Bugs worth recognising if they come back. The lessons that still apply are in [d
 
 ## A game cleared `spawn_points()` by reference
 
-game-g2gfast cleared the array `spawn_points()` returns on every map load. It worked only because the return was not a copy. `remove_spawn_point` and `clear_spawn_points` were added so nobody has to mutate the returned array, and g2gfast now calls `clear_spawn_points()`.
+game-airdrift cleared the array `spawn_points()` returns on every map load. It worked only because the return was not a copy. `remove_spawn_point` and `clear_spawn_points` were added so nobody has to mutate the returned array, and Airdrift now calls `clear_spawn_points()`.
 
 ## A freed spawn point crashed the engine
 
