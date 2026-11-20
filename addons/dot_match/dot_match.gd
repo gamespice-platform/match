@@ -82,7 +82,7 @@ signal round_ended(round_number: int, winner: int, outcome: DotMatchRules.Outcom
 ## Every round is over.
 signal match_ended(winner: int, outcome: DotMatchRules.Outcome)
 
-## Someone should be put back in the world. The game does the spawning; dot-match only
+## Someone should be put back in the world. The game does the spawning; GameSpice Match only
 ## decides when and where.
 signal respawn_due(key: String, spawn: DotSpawnPoint, tick: int)
 
@@ -90,7 +90,7 @@ signal respawn_due(key: String, spawn: DotSpawnPoint, tick: int)
 signal kill_recorded(entry: DotKillFeed.Entry)
 
 ## A player has done nothing for [member DotMatchConfig.idle_seconds]. What to do
-## about it is a server policy; dot-match only says so.
+## about it is a server policy; GameSpice Match only says so.
 signal player_idle(key: String)
 
 @export_group("Configuration")
@@ -254,7 +254,7 @@ func setup() -> DotResult:
 ## their points with [method add_spawn_point] immediately after setup returns, and a red
 ## line on every boot about a condition that is fixed on the next line is the shape this
 ## family calls "a warning that reads like a setting nobody has filled in" — which is how
-## dot-server's audit log went unopened in every default configuration for months.
+## GameSpice Server's audit log went unopened in every default configuration for months.
 func refresh_spawns(announce_empty: bool = true) -> void:
 	_spawn_points.clear()
 
@@ -396,7 +396,7 @@ func is_live() -> bool:
 
 
 ## Whether the game should hold every player still: the countdown, when the rules freeze
-## it. dot-match owns no bodies, so the game does the freezing (for example
+## it. GameSpice Match owns no bodies, so the game does the freezing (for example
 ## `DotFpsAdminModifiers.set_frozen`) from this or from [signal freeze_changed]; a player
 ## spawned during the countdown is spawned frozen too, because this stays true until LIVE.
 func is_frozen() -> bool:

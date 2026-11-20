@@ -34,8 +34,8 @@ extends DotConfig
 
 ## Seconds of doing nothing before a player is considered idle. Zero disables it.
 ##
-## dot-match only marks them: what to do about it — a warning, a move to spectators, a
-## kick — is a server policy and belongs in dot-server.
+## GameSpice Match only marks them: what to do about it — a warning, a move to spectators, a
+## kick — is a server policy and belongs in GameSpice Server.
 @export_range(0.0, 3600.0, 30.0) var idle_seconds: float = 180.0
 
 @export_group("Rule overrides")

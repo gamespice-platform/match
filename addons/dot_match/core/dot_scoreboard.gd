@@ -203,7 +203,7 @@ func note_damage(dealer_key: String, victim_key: String, amount: float) -> void:
 
 ## Adds to a mode's own counter, and to the player's score.
 ##
-## What a capture, a plant or a defuse uses. The counter name is the game's; dot-match
+## What a capture, a plant or a defuse uses. The counter name is the game's; GameSpice Match
 ## only guarantees it is carried and reported.
 func note_objective(
 	key: String,

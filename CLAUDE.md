@@ -1,10 +1,10 @@
-# dot-match
+# GameSpice Match
 
 The match loop: warmup, countdown, rounds, intermission, scoring, teams and autobalance, respawns and spawn selection, a kill feed, and the replicated clock. One call advances it, and everything is counted in ticks.
 
 Read the family [CLAUDE.md](../../CLAUDE.md) first; this file is only what is specific to matches.
 
-**The distributable is `addons/dot_match/`.** It requires [dot-core](../dot-core) and nothing else (`ln -s ../../dot-core/addons/dot_core addons/dot_core`, gitignored). Games bind it to dot-server, dot-net and dot-combat through callables and their own module.
+**The distributable is `addons/dot_match/`.** It requires [GameSpice Core](../dot-core) and nothing else (`ln -s ../../dot-core/addons/dot_core addons/dot_core`, gitignored). Games bind it to dot-server, dot-net and dot-combat through callables and their own module.
 
 ## Read before
 
@@ -24,7 +24,7 @@ Read the family [CLAUDE.md](../../CLAUDE.md) first; this file is only what is sp
 | `spawn/` | `DotSpawnPoint`, `DotSpawnSelector` (cooldowns, threats, `_fallback`) |
 | `net/dot_match_net_sync.gd` | `DotMatchNetSync`: state and `net_ends_at` as data specs |
 | `examples/match_selftest.tscn` | the suite, offline |
-| `examples/config_override_check.tscn` | the rule overrides; also the binder's cvars when dot-game, dot-profile and dot-server are linked into `addons/` |
+| `examples/config_override_check.tscn` | the rule overrides; also the binder's cvars when GameSpice Game, GameSpice Profile and GameSpice Server are linked into `addons/` |
 
 Paths except `examples/` are in `addons/dot_match/`.
 
@@ -47,6 +47,6 @@ The family's two steps ([family CLAUDE.md](../../CLAUDE.md#validating-anything))
 - Change spawn points only through `add_` / `remove_` / `clear_spawn_points`; never mutate the array `spawn_points()` returns. [design](docs/design.md#spawn-selection-gives-up-gracefully)
 - Without `spawns_ref` the match collects every point under the current scene, another game's too; a freed one is dropped before any walk of the list (`_forget_freed_spawns`), never reset. [design](docs/design.md#spawn-selection-gives-up-gracefully)
 - Replicate the absolute end tick; `seconds_remaining` is -1 for no clock on both sides. [design](docs/design.md#the-replicated-clock-is-an-absolute-end-tick)
-- Name no class outside dot-core; nothing here spawns anything. [design](docs/design.md#coupling-nothing-is-imported)
+- Name no class outside GameSpice Core; nothing here spawns anything. [design](docs/design.md#coupling-nothing-is-imported)
 
-Deliberately not here: objectives (dot-objective), map rotation and votes (dot-map, dot-vote), assist attribution, persisted stats, a HUD. [design](docs/design.md#deliberately-not-here)
+Deliberately not here: objectives (GameSpice Objective), map rotation and votes (GameSpice Map, GameSpice Vote), assist attribution, persisted stats, a HUD. [design](docs/design.md#deliberately-not-here)

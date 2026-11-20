@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
 
-## Editor entry point for dot-match. Registers inspector types only.
+## Editor entry point for GameSpice Match. Registers inspector types only.
 ##
 ## No autoload, for the family's reason: a process may run two matches at once — which
 ## is what this project's own self-test does — and a singleton match makes that

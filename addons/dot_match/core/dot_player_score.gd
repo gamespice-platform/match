@@ -5,10 +5,10 @@ extends RefCounted
 ##
 ## [b]Keyed by a stable player key, never by a peer id.[/b] A peer id is reassigned the
 ## moment someone reconnects, and a scoreboard keyed by one hands the next player to
-## join the previous player's kills. dot-server's session ids and dot-user's scoped ids
+## join the previous player's kills. GameSpice Server's session ids and GameSpice User's scoped ids
 ## are both stable; a transport peer id is not.
 
-## Stable identity. A dot-user scoped id, a dot-server session id — whatever the game
+## Stable identity. A GameSpice User scoped id, a GameSpice Server session id — whatever the game
 ## uses, as long as it survives a reconnect.
 var key: String = ""
 

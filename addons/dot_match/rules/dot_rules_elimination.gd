@@ -9,8 +9,8 @@ extends DotMatchRules
 ## with a score limit and a clock, and because writing it out is the clearest
 ## demonstration of what a [DotMatchRules] subclass is for.
 ##
-## [b]It needs to know who is alive, and dot-match does not.[/b] Being alive is a
-## `DotHealth` in dot-combat, which is not a dependency here — so the game supplies
+## [b]It needs to know who is alive, and GameSpice Match does not.[/b] Being alive is a
+## `DotHealth` in GameSpice Combat, which is not a dependency here — so the game supplies
 ## [member alive_fn] and this class asks.
 
 ## `func(key: String) -> bool`. Whether that player is alive right now.

@@ -4,8 +4,8 @@ extends Resource
 
 ## One side. A description; the score and the roster live in [DotTeamManager].
 ##
-## [b]Team ids start at 1.[/b] Zero means "no team" throughout dot-match and
-## dot-combat, and two players with no team are never allies — a free-for-all in which
+## [b]Team ids start at 1.[/b] Zero means "no team" throughout GameSpice Match and
+## GameSpice Combat, and two players with no team are never allies — a free-for-all in which
 ## everyone compares as team 0 would be a mode where nobody can damage anybody.
 
 ## Zero is reserved. Use 1 and up.

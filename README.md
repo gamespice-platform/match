@@ -1,6 +1,6 @@
 [![Match - GameSpice addon](docs/banner.png)](https://moddingcommunity.com/a/20-gs-match)
 
-The match loop for a Godot 4 multiplayer game: warmup, rounds, scoring, teams, spawning and respawning. Everything is counted in ticks and driven by one call, so a server's round clock and its netcode agree on what time it is. It needs only [dot-core](https://github.com/gamespice-platform/core). Part of TMC's open source [**GameSpice**](https://gamespice.net) collection (MIT licence).
+The match loop for a Godot 4 multiplayer game: warmup, rounds, scoring, teams, spawning and respawning. Everything is counted in ticks and driven by one call, so a server's round clock and its netcode agree on what time it is. It needs only [GameSpice Core](https://github.com/gamespice-platform/core). Part of TMC's open source [**GameSpice**](https://gamespice.net) collection (MIT licence).
 
 > Built with Claude Code. Every addon has a headless test suite and the suites pass, but little of this has met real players yet. Please report rough edges.
 
@@ -32,7 +32,7 @@ match_node.report_kill(killer_key, victim_key, &"rifle", tick, headshot)
 A match is a state machine: `WARMUP`, `COUNTDOWN`, `LIVE`, `INTERMISSION`, `MATCH_END`. One call, `tick()`, moves it. There is no `Timer`, no `_process` and no wall clock. A match that ticks itself runs on the engine's schedule, not the simulation's, and a round timer and a netcode that disagree produce a round that ends on a different tick for every client.
 
 - **Warmup** is the only open wait. It runs on `start()` and whenever the server drops below `min_players`.
-- **Countdown** comes before every other round. The round resets, every present player is placed at a round spawn (`respawn_due`) and held still. `is_frozen()` is true for exactly this state when `rules.freeze_during_countdown` is on, `freeze_changed(frozen)` announces the changes, and `round_started` fires at `LIVE` without respawning anyone. dot-match owns no bodies, so your game freezes its controllers.
+- **Countdown** comes before every other round. The round resets, every present player is placed at a round spawn (`respawn_due`) and held still. `is_frozen()` is true for exactly this state when `rules.freeze_during_countdown` is on, `freeze_changed(frozen)` announces the changes, and `round_started` fires at `LIVE` without respawning anyone. GameSpice Match owns no bodies, so your game freezes its controllers.
 
 What winning means lives in a `DotMatchRules` resource. `DotMatch` never asks which mode it runs.
 
@@ -48,7 +48,7 @@ What winning means lives in a `DotMatchRules` resource. `DotMatch` never asks wh
 | `DotKillFeed` | The last few kills as data, not formatted strings. |
 | `DotSpawnPoint`, `DotSpawnSelector` | Where a player appears, and why that point. |
 | `DotRespawnQueue` | Who is waiting to come back, counted against a target tick. |
-| `DotMatchNetSync` | What to replicate, without naming a dot-net type. |
+| `DotMatchNetSync` | What to replicate, without naming a GameSpice Net type. |
 
 ## Settings
 
@@ -85,7 +85,7 @@ Layered like every GameSpice config: defaults, JSON file, `DOT_MATCH_*` environm
 | `tick_rate` | 64 | Must match whatever calls `tick()`. Durations are converted with it. |
 | `auto_start` | true | Start warmup as soon as the node is ready. |
 | `balance_between_rounds` | true | Rebalance teams at round start only, never mid-fight. |
-| `idle_seconds` | 180 | Seconds of doing nothing before a player is marked idle. 0 = off. dot-match only marks them; what to do is dot-server's policy. |
+| `idle_seconds` | 180 | Seconds of doing nothing before a player is marked idle. 0 = off. GameSpice Match only marks them; what to do is GameSpice Server's policy. |
 | `respawn_delay_sec` | -1 | Replaces the rules' value when 0 or more. |
 | `respawn_disabled` | -1 | -1 keeps the rules' value, 0 respawns, 1 does not. |
 | `friendly_points` | -101 | Replaces the rules' value when -100 or more. |

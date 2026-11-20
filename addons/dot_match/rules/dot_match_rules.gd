@@ -4,7 +4,7 @@ extends Resource
 
 ## What winning means, and what a kill is worth.
 ##
-## Subclass this for a mode dot-match does not ship. [DotMatch] calls the four
+## Subclass this for a mode GameSpice Match does not ship. [DotMatch] calls the four
 ## [code]_[/code]-prefixed methods and nothing else, so a mode can change every rule
 ## without touching the state machine.
 ##
@@ -89,7 +89,7 @@ enum Outcome {
 ## are still there), so this is the only wait a new round has besides the one warmup. Zero skips the countdown: the round goes live first and everyone is placed right after `round_started`, the order a game that builds its round in that handler relies on.
 @export_range(0.0, 30.0, 0.5) var countdown_sec: float = 5.0
 
-## Hold every player still during the countdown. dot-match owns no bodies: it reports
+## Hold every player still during the countdown. GameSpice Match owns no bodies: it reports
 ## [method DotMatch.is_frozen] and the game freezes its controllers.
 @export var freeze_during_countdown: bool = true
 

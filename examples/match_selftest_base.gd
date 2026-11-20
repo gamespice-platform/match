@@ -1,6 +1,6 @@
 extends Node
 
-## Shared counters, assertions and fixtures for the dot-match self-test. Split out of match_selftest.gd for file size.
+## Shared counters, assertions and fixtures for the GameSpice Match self-test. Split out of match_selftest.gd for file size.
 
 const TICK_RATE := 60
 

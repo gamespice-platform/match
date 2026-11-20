@@ -67,24 +67,24 @@ Threats are **enemies only**, filtered by `DotMatch._threats_against`. A selecto
 
 ## The replicated clock is an absolute end tick
 
-`DotMatchNetSync` sends `net_ends_at`, not seconds remaining. A relative value would have to be re-sent every tick to stay accurate; an absolute end tick goes out once per state change, and every client counts down from the clock it already shares with the server (dot-net's). `seconds_remaining` returns -1 for "no clock" on both server and client, so a HUD has one branch.
+`DotMatchNetSync` sends `net_ends_at`, not seconds remaining. A relative value would have to be re-sent every tick to stay accurate; an absolute end tick goes out once per state change, and every client counts down from the clock it already shares with the server (GameSpice Net's). `seconds_remaining` returns -1 for "no clock" on both server and client, so a HUD has one branch.
 
 ## Coupling: nothing is imported
 
-dot-match names no class outside dot-core: not dot-combat, dot-net, dot-server or dot-loadout.
+GameSpice Match names no class outside GameSpice Core: not GameSpice Combat, GameSpice Net, GameSpice Server or GameSpice Loadout.
 
 - `DotMatchNetSync` describes what to replicate as data, with type names as strings, which a bridge resolves with `DotNetVar.Type[spec.type]`.
-- Being alive is dot-combat's `DotHealth`, so `DotRulesElimination` takes an `alive_fn`. Unwired, it logs a warning and falls back to score and clock, visible in the first round played, which is the point.
+- Being alive is GameSpice Combat's `DotHealth`, so `DotRulesElimination` takes an `alive_fn`. Unwired, it logs a warning and falls back to score and clock, visible in the first round played, which is the point.
 - Where a player is comes from `DotMatch.position_fn`.
-- `DotTeamManager.team_lookup()` returns exactly the `Callable` that dot-combat's `DotDamageResolver.team_of` wants, without either project naming the other.
-- Nothing here spawns anything. `respawn_due` carries a `DotSpawnPoint`; the game spawns, because what a player *is* is not dot-match's business.
+- `DotTeamManager.team_lookup()` returns exactly the `Callable` that GameSpice Combat's `DotDamageResolver.team_of` wants, without either project naming the other.
+- Nothing here spawns anything. `respawn_due` carries a `DotSpawnPoint`; the game spawns, because what a player *is* is not GameSpice Match's business.
 
-The `DotModule` that binds a match to a dot-server belongs in the game (game-fatal-contact's `fc_module.gd` is one): dot-server is not a dependency, and the bridge that forwards joins, leaves and deaths is about forty lines.
+The `DotModule` that binds a match to a GameSpice Server belongs in the game (game-fatal-contact's `fc_module.gd` is one): GameSpice Server is not a dependency, and the bridge that forwards joins, leaves and deaths is about forty lines.
 
 ## Deliberately not here
 
-- **Objectives.** `report_objective` carries a named counter and adds to a team score, which is the shared half. Control points, bombs, payloads and flags are [dot-objective](../../dot-objective)'s, which does not import dot-match; its `score_fn` is where a game connects the two.
-- **Map rotation and votes.** dot-map (`DotMapRotation`) and dot-vote own what plays next. A match that also rotated maps would be a second, competing owner of what is loaded. `min_players` and the warmup clock are what dot-match contributes to readiness.
+- **Objectives.** `report_objective` carries a named counter and adds to a team score, which is the shared half. Control points, bombs, payloads and flags are [GameSpice Objective](../../dot-objective)'s, which does not import dot-match; its `score_fn` is where a game connects the two.
+- **Map rotation and votes.** GameSpice Map (`DotMapRotation`) and GameSpice Vote own what plays next. A match that also rotated maps would be a second, competing owner of what is loaded. `min_players` and the warmup clock are what GameSpice Match contributes to readiness.
 - **Assist attribution.** `report_assist` exists and scores; deciding *who* assisted needs a damage history with a time window, which is dot-combat's `DotDamage` stream plus a game's own policy.
-- **Persisted stats.** The scoreboard is per match and `DotScoreboard.reset_match` drops absent records. Anything that outlives a match is dot-stats or dot-user.
-- **A HUD.** `describe_lines()` is what a console command dumps; the scoreboard as a Control is dot-menu's `DotMenuScoreboard`, and other HUD pieces belong in dot-ui.
+- **Persisted stats.** The scoreboard is per match and `DotScoreboard.reset_match` drops absent records. Anything that outlives a match is GameSpice Stats or GameSpice User.
+- **A HUD.** `describe_lines()` is what a console command dumps; the scoreboard as a Control is GameSpice Menu's `DotMenuScoreboard`, and other HUD pieces belong in GameSpice UI.

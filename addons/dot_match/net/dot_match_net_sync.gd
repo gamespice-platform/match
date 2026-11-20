@@ -3,7 +3,7 @@ extends RefCounted
 
 ## What a match has to tell every client, and how to get it there.
 ##
-## [b]dot-net is not a dependency and is not imported here.[/b] Only dot-core is a hard
+## [b]GameSpice Net is not a dependency and is not imported here.[/b] Only GameSpice Core is a hard
 ## dependency in this family, and a script that [i]mentions[/i] a [code]class_name[/code]
 ## the project does not have fails to parse — taking every script that references it
 ## down with it. Types are named as strings and a bridge resolves them with
