@@ -1,3 +1,5 @@
+[![dot-match - GameSpice addon](docs/banner.png)](https://moddingcommunity.com/a/209-dot-match)
+
 The match loop for a Godot 4 multiplayer game: warmup, rounds, scoring, teams, spawning and respawning. Everything is counted in ticks and driven by one call, so a server's round clock and its netcode agree on what time it is. It needs only [dot-core](https://github.com/gamespice-platform/core). Part of TMC's open source **Gamespice** collection (MIT licence).
 
 > Built with Claude Code. Every addon has a headless test suite and the suites pass, but little of this has met real players yet. Please report rough edges.
