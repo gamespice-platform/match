@@ -1,10 +1,10 @@
 extends Node
 
-## GSMatchConfig's rule overrides, offline; also GSGameConfigBinder's cvars when dot-game, dot-profile and dot-server are linked into addons/. Run: godot --headless --path . res://examples/config_override_check.tscn
+## GSMatchConfig's rule overrides, offline; also GSGameConfigBinder's cvars when gs-game, gs-profile and gs-server are linked into addons/. Run: godot --headless --path . res://examples/config_override_check.tscn
 
 const TICK_RATE := 60
-const BINDER := "res://addons/dot_game/runtime/dot_game_config_binder.gd"
-const CONVAR := "res://addons/dot_server/console/dot_convar.gd"
+const BINDER := "res://addons/gs_game/runtime/gs_game_config_binder.gd"
+const CONVAR := "res://addons/gs_server/console/gs_convar.gd"
 const CHECKS_BASE := 10
 const CHECKS_BINDER := 8
 
@@ -68,7 +68,7 @@ func _rules() -> GSMatchRules:
 
 
 func _run() -> void:
-	print("dot-match: config rule overrides")
+	print("gs-match: config rule overrides")
 	var code := 0
 	var node := _make(_rules())
 	var tick := _live(node)
@@ -98,7 +98,7 @@ func _run() -> void:
 	var script: Script = load(BINDER) if FileAccess.file_exists(BINDER) and FileAccess.file_exists(CONVAR) else null
 	var expected := CHECKS_BASE
 	if script == null:
-		print("  skip  cvar binding: dot-game is not linked")
+		print("  skip  cvar binding: gs-game is not linked")
 	else:
 		expected += CHECKS_BINDER
 		_binder(script)

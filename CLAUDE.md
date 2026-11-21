@@ -4,7 +4,7 @@ The match loop: warmup, countdown, rounds, intermission, scoring, teams and auto
 
 Read the family [CLAUDE.md](../../CLAUDE.md) first; this file is only what is specific to matches.
 
-**The distributable is `addons/dot_match/`.** It requires [GameSpice Core](../dot-core) and nothing else (`ln -s ../../dot-core/addons/dot_core addons/dot_core`, gitignored). Games bind it to dot-server, dot-net and dot-combat through callables and their own module.
+**The distributable is `addons/gs_match/`.** It requires [GameSpice Core](../gs-core) and nothing else (`ln -s ../../gs-core/addons/gs_core addons/gs_core`, gitignored). Games bind it to gs-server, gs-net and gs-combat through callables and their own module.
 
 ## Read before
 
@@ -17,16 +17,16 @@ Read the family [CLAUDE.md](../../CLAUDE.md) first; this file is only what is sp
 
 | Path | What |
 | --- | --- |
-| `dot_match.gd` | `GSMatch`: the state machine, `tick()`, `report_kill` / `report_assist` / `report_objective`, spawn points, `position_fn` |
-| `dot_match_config.gd` | `GSMatchConfig`: how the server runs it (`balance_between_rounds`), and the rule overrides (`respawn_delay_sec`, `respawn_disabled`, `friendly_points`) that `GSGameConfigBinder` turns into `<prefix>_<field>` cvars; `dot_match_overrides.gd` applies them over the rules at use |
+| `gs_match.gd` | `GSMatch`: the state machine, `tick()`, `report_kill` / `report_assist` / `report_objective`, spawn points, `position_fn` |
+| `gs_match_config.gd` | `GSMatchConfig`: how the server runs it (`balance_between_rounds`), and the rule overrides (`respawn_delay_sec`, `respawn_disabled`, `friendly_points`) that `GSGameConfigBinder` turns into `<prefix>_<field>` cvars; `gs_match_overrides.gd` applies them over the rules at use |
 | `rules/` | `GSMatchRules` (what the mode is: limits, `min_players`, `pause_when_empty`), `GSRulesElimination` (`alive_fn`) |
 | `core/` | `GSScoreboard`, `GSPlayerScore`, `GSTeam`, `GSTeamManager` (assignment, `rebalance`, `team_lookup()`), `GSRespawnQueue`, `GSKillFeed` |
 | `spawn/` | `GSSpawnPoint`, `GSSpawnSelector` (cooldowns, threats, `_fallback`) |
-| `net/dot_match_net_sync.gd` | `GSMatchNetSync`: state and `net_ends_at` as data specs |
+| `net/gs_match_net_sync.gd` | `GSMatchNetSync`: state and `net_ends_at` as data specs |
 | `examples/match_selftest.tscn` | the suite, offline |
 | `examples/config_override_check.tscn` | the rule overrides; also the binder's cvars when GameSpice Game, GameSpice Profile and GameSpice Server are linked into `addons/` |
 
-Paths except `examples/` are in `addons/dot_match/`.
+Paths except `examples/` are in `addons/gs_match/`.
 
 ## Running and testing
 
@@ -35,7 +35,7 @@ The family's two steps ([family CLAUDE.md](../../CLAUDE.md#validating-anything))
 ## Rules that bite
 
 - `GSMatch.tick(current_tick)` is the only thing that advances a match; no `Timer`, `_process` or wall clock. [design](docs/design.md#one-call-moves-the-match-and-everything-is-counted-in-ticks)
-- A threshold and the decision about it live on the same object; what the mode is goes on `GSMatchRules`. [design](docs/design.md#dotmatchrules-is-what-the-mode-is-dotmatchconfig-is-how-the-server-runs-it)
+- A threshold and the decision about it live on the same object; what the mode is goes on `GSMatchRules`. [design](docs/design.md#gsmatchrules-is-what-the-mode-is-dotmatchconfig-is-how-the-server-runs-it)
 - Every ordering has an explicit tie-break; never iterate a dictionary to decide. A tie-break on a StringName (`Node.name`, an id) compares `String(…)`: StringNames compare by interning. [design](docs/design.md#ordering-is-never-left-to-a-dictionary)
 - One warmup, then a frozen countdown before every round: warmup, intermission and a match end with players present all lead to `COUNTDOWN`, which resets the round and places everyone (`round_preparing`, `respawn_due`); `round_started` at `LIVE` places nobody. The game freezes bodies from `is_frozen()` / `freeze_changed`. `countdown_sec` 0 keeps live-then-place. [design](docs/design.md#one-warmup-then-a-frozen-countdown-before-every-round)
 - All deaths go through `report_kill` (empty killer = world, equal = suicide); outside `LIVE` it scores nothing. [design](docs/design.md#kills-go-through-one-method)

@@ -1,6 +1,6 @@
 extends "res://examples/match_selftest_base.gd"
 
-## Exercises everything in dot-match, offline and headless.
+## Exercises everything in gs-match, offline and headless.
 ##
 ## [codeblock]
 ## godot --headless --path . res://examples/match_selftest.tscn
@@ -28,7 +28,7 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	print("dot-match self-test")
+	print("gs-match self-test")
 	print("")
 
 	_test_teams()

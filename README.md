@@ -6,7 +6,7 @@ The match loop for a Godot 4 multiplayer game: warmup, rounds, scoring, teams, s
 
 ## Install
 
-Copy `addons/dot_match/` and `addons/dot_core/` into your project and enable both under **Project > Project Settings > Plugins**.
+Copy `addons/gs_match/` and `addons/gs_core/` into your project and enable both under **Project > Project Settings > Plugins**.
 
 ## Use
 
@@ -78,7 +78,7 @@ What winning means lives in a `GSMatchRules` resource. `GSMatch` never asks whic
 
 ### Server (`GSMatchConfig`)
 
-Layered like every GameSpice config: defaults, JSON file, `DOT_MATCH_*` environment, `--match-*` command line.
+Layered like every GameSpice config: defaults, JSON file, `GS_MATCH_*` environment, `--match-*` command line.
 
 | Setting | Default | What it does |
 | --- | --- | --- |

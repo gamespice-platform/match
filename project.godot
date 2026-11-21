@@ -10,9 +10,9 @@ config_version=5
 
 [application]
 
-config/name="dot-match"
+config/name="gs-match"
 config/features=PackedStringArray("4.7")
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/dot_match/plugin.cfg")
+enabled=PackedStringArray("res://addons/gs_match/plugin.cfg")

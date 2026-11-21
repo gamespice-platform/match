@@ -1,6 +1,6 @@
 # Design
 
-Why dot-match is shaped the way it is. The one-line rules are in [CLAUDE.md](../CLAUDE.md).
+Why gs-match is shaped the way it is. The one-line rules are in [CLAUDE.md](../CLAUDE.md).
 
 ## One call moves the match, and everything is counted in ticks
 
@@ -83,8 +83,8 @@ The `GSModule` that binds a match to a GameSpice Server belongs in the game (gam
 
 ## Deliberately not here
 
-- **Objectives.** `report_objective` carries a named counter and adds to a team score, which is the shared half. Control points, bombs, payloads and flags are [GameSpice Objective](../../dot-objective)'s, which does not import dot-match; its `score_fn` is where a game connects the two.
+- **Objectives.** `report_objective` carries a named counter and adds to a team score, which is the shared half. Control points, bombs, payloads and flags are [GameSpice Objective](../../gs-objective)'s, which does not import gs-match; its `score_fn` is where a game connects the two.
 - **Map rotation and votes.** GameSpice Map (`GSMapRotation`) and GameSpice Vote own what plays next. A match that also rotated maps would be a second, competing owner of what is loaded. `min_players` and the warmup clock are what GameSpice Match contributes to readiness.
-- **Assist attribution.** `report_assist` exists and scores; deciding *who* assisted needs a damage history with a time window, which is dot-combat's `GSDamage` stream plus a game's own policy.
+- **Assist attribution.** `report_assist` exists and scores; deciding *who* assisted needs a damage history with a time window, which is gs-combat's `GSDamage` stream plus a game's own policy.
 - **Persisted stats.** The scoreboard is per match and `GSScoreboard.reset_match` drops absent records. Anything that outlives a match is GameSpice Stats or GameSpice User.
 - **A HUD.** `describe_lines()` is what a console command dumps; the scoreboard as a Control is GameSpice Menu's `GSMenuScoreboard`, and other HUD pieces belong in GameSpice UI.

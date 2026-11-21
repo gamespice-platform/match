@@ -28,7 +28,7 @@ extends Node
 ## [/codeblock]
 
 const CHANNEL := "match"
-const SERVICE := &"dot_match"
+const SERVICE := &"gs_match"
 
 ## Where a match is.
 enum State {
@@ -755,7 +755,7 @@ func report_kill(
 	var entry := feed.add_kill(killer, victim, cause, tick, headshot)
 
 	# The one funnel every kill passes through, so the line is here and not in the feed.
-	# DEBUG, as dot-combat logs each hit: a kill is a decision the rules made, and on a
+	# DEBUG, as gs-combat logs each hit: a kill is a decision the rules made, and on a
 	# busy server INFO per kill is the log being a scoreboard. It answers "did that count".
 	GSLog.debug(CHANNEL, "kill", {
 		"killer": killer_key,

@@ -7,33 +7,33 @@ extends EditorPlugin
 ## is what this project's own self-test does — and a singleton match makes that
 ## impossible. [GSMatch] registers itself in [GSRegistry] instead.
 
-const _ICON := "res://addons/dot_match/icon_placeholder.svg"
+const _ICON := "res://addons/gs_match/icon_placeholder.svg"
 
 const _TYPES := [
 	[
 		"GSMatch",
 		"Node",
-		"res://addons/dot_match/dot_match.gd",
+		"res://addons/gs_match/gs_match.gd",
 	],
 	[
 		"GSScoreboard",
 		"Node",
-		"res://addons/dot_match/core/dot_scoreboard.gd",
+		"res://addons/gs_match/core/gs_scoreboard.gd",
 	],
 	[
 		"GSTeamManager",
 		"Node",
-		"res://addons/dot_match/core/dot_team_manager.gd",
+		"res://addons/gs_match/core/gs_team_manager.gd",
 	],
 	[
 		"GSKillFeed",
 		"Node",
-		"res://addons/dot_match/core/dot_kill_feed.gd",
+		"res://addons/gs_match/core/gs_kill_feed.gd",
 	],
 	[
 		"GSSpawnPoint",
 		"Node3D",
-		"res://addons/dot_match/spawn/dot_spawn_point.gd",
+		"res://addons/gs_match/spawn/gs_spawn_point.gd",
 	],
 ]
 

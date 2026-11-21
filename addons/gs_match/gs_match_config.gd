@@ -8,7 +8,7 @@ extends GSConfig
 ## game. This is how the server runs it, and it is the same regardless of mode.
 ##
 ## Layered like every [GSConfig]: exported defaults, then a JSON file, then
-## [code]DOT_MATCH_*[/code] environment variables, then [code]--match-*[/code]
+## [code]GS_MATCH_*[/code] environment variables, then [code]--match-*[/code]
 ## arguments.
 
 @export_group("Simulation")
@@ -57,7 +57,7 @@ extends GSConfig
 
 
 func env_prefix() -> String:
-	return "DOT_MATCH_"
+	return "GS_MATCH_"
 
 
 func cli_prefix() -> String:
