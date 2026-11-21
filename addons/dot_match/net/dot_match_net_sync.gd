@@ -1,4 +1,4 @@
-class_name DotMatchNetSync
+class_name GSMatchNetSync
 extends RefCounted
 
 ## What a match has to tell every client, and how to get it there.
@@ -7,26 +7,26 @@ extends RefCounted
 ## dependency in this family, and a script that [i]mentions[/i] a [code]class_name[/code]
 ## the project does not have fails to parse — taking every script that references it
 ## down with it. Types are named as strings and a bridge resolves them with
-## [code]DotNetVar.Type[spec.type][/code].
+## [code]GSNetVar.Type[spec.type][/code].
 ##
 ## [codeblock]
-## class_name MatchNet extends DotNetBehaviour
+## class_name MatchNet extends GSNetBehaviour
 ##
-## @export var match_node: DotMatch
+## @export var match_node: GSMatch
 ##
 ## var net_state: int
 ## var net_round: int
 ## var net_ends_at: int
 ##
 ## func _register_net_vars() -> void:
-##     for spec in DotMatchNetSync.specs():
-##         var declaration := replicate(spec.property, DotNetVar.Type[spec.type])
+##     for spec in GSMatchNetSync.specs():
+##         var declaration := replicate(spec.property, GSNetVar.Type[spec.type])
 ##         if spec.bits > 0:
 ##             declaration.bits(spec.bits)
 ##
 ## func _net_simulate(tick: int, _delta: float) -> void:
 ##     match_node.tick(tick)
-##     DotMatchNetSync.pull(match_node, self, tick)
+##     GSMatchNetSync.pull(match_node, self, tick)
 ## [/codeblock]
 
 const STATE_BITS := 3
@@ -89,7 +89,7 @@ static func properties() -> Array[StringName]:
 ## The end tick is what makes a clock work without sending it every frame: the server
 ## says "this ends at tick 41320" once, and every client already agrees what tick it is
 ## because the netcode's clock is what they are all running on.
-static func pull(match_node: DotMatch, target: Object, _tick: int) -> void:
+static func pull(match_node: GSMatch, target: Object, _tick: int) -> void:
 	if match_node == null or target == null:
 		return
 
@@ -114,7 +114,7 @@ static func pull(match_node: DotMatch, target: Object, _tick: int) -> void:
 ## server's decision (its rules' `freeze_during_countdown`), not the client's copy.
 ## A bridge compares this across pulls to raise its own freeze_changed.
 static func is_frozen(source: Object) -> bool:
-	if source == null or int(source.get(&"net_state")) != int(DotMatch.State.COUNTDOWN):
+	if source == null or int(source.get(&"net_state")) != int(GSMatch.State.COUNTDOWN):
 		return false
 	var flag: Variant = source.get(&"net_frozen")
 	return flag == null or int(flag) != 0
@@ -122,7 +122,7 @@ static func is_frozen(source: Object) -> bool:
 
 ## Seconds left on a client, from the replicated end tick and the client's own tick.
 ##
-## Returns -1 when there is no clock, matching [method DotMatch.seconds_remaining], so
+## Returns -1 when there is no clock, matching [method GSMatch.seconds_remaining], so
 ## a HUD has one branch rather than two.
 static func seconds_remaining(
 	source: Object,

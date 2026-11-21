@@ -1,8 +1,8 @@
 @tool
-class_name DotTeam
+class_name GSTeam
 extends Resource
 
-## One side. A description; the score and the roster live in [DotTeamManager].
+## One side. A description; the score and the roster live in [GSTeamManager].
 ##
 ## [b]Team ids start at 1.[/b] Zero means "no team" throughout GameSpice Match and
 ## GameSpice Combat, and two players with no team are never allies — a free-for-all in which
@@ -26,7 +26,7 @@ extends Resource
 @export_group("Spawning")
 
 ## Spawn points tagged with this belong to this team. Empty means the whole pool,
-## tagged points included. Read by [method DotMatch.choose_spawn].
+## tagged points included. Read by [method GSMatch.choose_spawn].
 @export var spawn_tag: StringName = &""
 
 @export_group("Role")
@@ -42,8 +42,8 @@ static func make(
 	p_id: int,
 	p_name: String,
 	p_colour: Color = Color.WHITE
-) -> DotTeam:
-	var team := DotTeam.new()
+) -> GSTeam:
+	var team := GSTeam.new()
 	team.id = p_id
 	team.display_name = p_name
 	team.abbreviation = p_name.substr(0, 3).to_upper()
@@ -52,27 +52,27 @@ static func make(
 
 
 ## The two sides almost every team mode starts from.
-static func standard_pair() -> Array[DotTeam]:
+static func standard_pair() -> Array[GSTeam]:
 	return [
-		DotTeam.make(1, "Red", Color(0.85, 0.25, 0.25)),
-		DotTeam.make(2, "Blue", Color(0.25, 0.45, 0.9)),
+		GSTeam.make(1, "Red", Color(0.85, 0.25, 0.25)),
+		GSTeam.make(2, "Blue", Color(0.25, 0.45, 0.9)),
 	]
 
 
-static func spectators(p_id: int = 31) -> DotTeam:
-	var team := DotTeam.make(p_id, "Spectators", Color(0.6, 0.6, 0.6))
+static func spectators(p_id: int = 31) -> GSTeam:
+	var team := GSTeam.make(p_id, "Spectators", Color(0.6, 0.6, 0.6))
 	team.is_spectator = true
 	return team
 
 
-func validate() -> DotResult:
+func validate() -> GSResult:
 	if id <= 0:
-		return DotResult.fail(
-			DotError.CODE_INVALID,
+		return GSResult.fail(
+			GSError.CODE_INVALID,
 			"Team ids start at 1; 0 means 'no team' everywhere in this family."
 		)
 
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 func describe() -> Dictionary:
@@ -86,4 +86,4 @@ func describe() -> Dictionary:
 
 
 func _to_string() -> String:
-	return "DotTeam(%d %s)" % [id, display_name]
+	return "GSTeam(%d %s)" % [id, display_name]

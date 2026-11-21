@@ -1,4 +1,4 @@
-class_name DotSpawnSelector
+class_name GSSpawnSelector
 extends RefCounted
 
 ## Picks where a player appears.
@@ -18,7 +18,7 @@ extends RefCounted
 
 const CHANNEL := "match.spawn"
 
-## `func(point: DotSpawnPoint) -> float`. How dangerous a point is; higher is worse.
+## `func(point: GSSpawnPoint) -> float`. How dangerous a point is; higher is worse.
 ##
 ## Left unset, [member threats] is used with a simple nearest-distance rule. Replace it
 ## to weigh line of sight, recent deaths, or a game mode's own idea of danger.
@@ -34,7 +34,7 @@ var threats: Array[Vector3] = []
 ## merely scored badly. Spawning here is a telefrag.
 var blocked_radius: float = 1.5
 
-## `func(point: DotSpawnPoint) -> bool`. Extra filter, for a game mode's own rules.
+## `func(point: GSSpawnPoint) -> bool`. Extra filter, for a game mode's own rules.
 var filter_fn: Callable = Callable()
 
 var _selections: int = 0
@@ -46,12 +46,12 @@ var _fallbacks: int = 0
 ## [param for_team] filters by team; 0 accepts any point. [param tag] additionally
 ## requires it, for a round-start spawn or an attacker spawn.
 func choose(
-	points: Array[DotSpawnPoint],
+	points: Array[GSSpawnPoint],
 	tick: int,
 	for_team: int = 0,
 	tag: StringName = &""
-) -> DotSpawnPoint:
-	var best: DotSpawnPoint = null
+) -> GSSpawnPoint:
+	var best: GSSpawnPoint = null
 	var best_score := -INF
 
 	for point in points:
@@ -101,11 +101,11 @@ func choose(
 ## alternative is a player who is dead until a point frees up — which on a busy map
 ## with a short round is the rest of the match.
 func _fallback(
-	points: Array[DotSpawnPoint],
+	points: Array[GSSpawnPoint],
 	tick: int,
 	for_team: int
-) -> DotSpawnPoint:
-	var candidates: Array[DotSpawnPoint] = []
+) -> GSSpawnPoint:
+	var candidates: Array[GSSpawnPoint] = []
 
 	for point in points:
 		if point == null or not point.enabled:
@@ -123,13 +123,13 @@ func _fallback(
 				candidates.append(point)
 
 	if candidates.is_empty():
-		DotLog.warn(CHANNEL, "no usable spawn point at all", {"tick": tick})
+		GSLog.warn(CHANNEL, "no usable spawn point at all", {"tick": tick})
 		return null
 
 	_fallbacks += 1
 
 	# The least recently used, ties on name.
-	var best: DotSpawnPoint = candidates[0]
+	var best: GSSpawnPoint = candidates[0]
 
 	for point in candidates:
 		if point.last_used_tick < best.last_used_tick:
@@ -141,7 +141,7 @@ func _fallback(
 
 
 ## Distance to the nearest threat, or INF when the point is occupied.
-func _danger_at(point: DotSpawnPoint) -> float:
+func _danger_at(point: GSSpawnPoint) -> float:
 	if danger_fn.is_valid():
 		var value: Variant = danger_fn.call(point)
 		return float(value) if typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT else 0.0

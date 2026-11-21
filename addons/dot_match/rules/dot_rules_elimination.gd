@@ -1,16 +1,16 @@
 @tool
-class_name DotRulesElimination
-extends DotMatchRules
+class_name GSRulesElimination
+extends GSMatchRules
 
 ## A round ends when one side has nobody left alive. Search and destroy, last man
 ## standing, and every round-based mode that does not respawn.
 ##
 ## Shipped because it is the one common mode whose win condition cannot be expressed
 ## with a score limit and a clock, and because writing it out is the clearest
-## demonstration of what a [DotMatchRules] subclass is for.
+## demonstration of what a [GSMatchRules] subclass is for.
 ##
 ## [b]It needs to know who is alive, and GameSpice Match does not.[/b] Being alive is a
-## `DotHealth` in GameSpice Combat, which is not a dependency here — so the game supplies
+## `GSHealth` in GameSpice Combat, which is not a dependency here — so the game supplies
 ## [member alive_fn] and this class asks.
 
 ## `func(key: String) -> bool`. Whether that player is alive right now.
@@ -21,7 +21,7 @@ extends DotMatchRules
 var alive_fn: Callable = Callable()
 
 
-static func make(round_sec: float = 120.0) -> DotRulesElimination:
+static func make(round_sec: float = 120.0) -> GSRulesElimination:
 	# Not this class's own name. A script that names itself in an expression, loaded after
 	# its base, cuts Godot 4.7.2's exit teardown short and leaks every script loaded before
 	# it. See docs/gdscript-hazards.md, "A script that names itself".
@@ -38,12 +38,12 @@ static func make(round_sec: float = 120.0) -> DotRulesElimination:
 
 
 func _round_outcome(
-	scoreboard: DotScoreboard,
-	teams: DotTeamManager,
+	scoreboard: GSScoreboard,
+	teams: GSTeamManager,
 	elapsed_sec: float
 ) -> Outcome:
 	if not alive_fn.is_valid():
-		DotLog.warn(
+		GSLog.warn(
 			"match.rules",
 			"elimination rules have no alive_fn; falling back to score and clock"
 		)
@@ -63,7 +63,7 @@ func _round_outcome(
 	return Outcome.NONE
 
 
-func _round_winner(scoreboard: DotScoreboard, teams: DotTeamManager) -> int:
+func _round_winner(scoreboard: GSScoreboard, teams: GSTeamManager) -> int:
 	if not alive_fn.is_valid():
 		return super._round_winner(scoreboard, teams)
 
@@ -77,8 +77,8 @@ func _round_winner(scoreboard: DotScoreboard, teams: DotTeamManager) -> int:
 
 
 func _teams_with_survivors(
-	scoreboard: DotScoreboard,
-	teams: DotTeamManager
+	scoreboard: GSScoreboard,
+	teams: GSTeamManager
 ) -> Array[int]:
 	var out: Array[int] = []
 

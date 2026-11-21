@@ -11,8 +11,8 @@ Copy `addons/dot_match/` and `addons/dot_core/` into your project and enable bot
 ## Use
 
 ```gdscript
-var match_node := DotMatch.new()
-match_node.rules = DotMatchRules.deathmatch(30)
+var match_node := GSMatch.new()
+match_node.rules = GSMatchRules.deathmatch(30)
 match_node.position_fn = func(key): return player_position(key)
 add_child(match_node)
 
@@ -34,25 +34,25 @@ A match is a state machine: `WARMUP`, `COUNTDOWN`, `LIVE`, `INTERMISSION`, `MATC
 - **Warmup** is the only open wait. It runs on `start()` and whenever the server drops below `min_players`.
 - **Countdown** comes before every other round. The round resets, every present player is placed at a round spawn (`respawn_due`) and held still. `is_frozen()` is true for exactly this state when `rules.freeze_during_countdown` is on, `freeze_changed(frozen)` announces the changes, and `round_started` fires at `LIVE` without respawning anyone. GameSpice Match owns no bodies, so your game freezes its controllers.
 
-What winning means lives in a `DotMatchRules` resource. `DotMatch` never asks which mode it runs.
+What winning means lives in a `GSMatchRules` resource. `GSMatch` never asks which mode it runs.
 
 ## What is in it
 
 | Piece | What it does |
 | --- | --- |
-| `DotMatch` | The state machine: rounds, clocks, respawns and the win check. |
-| `DotMatchRules` | What winning means and what a kill is worth. Presets `deathmatch(limit)` and `team_deathmatch(limit)`; subclass for a new mode. |
-| `DotRulesElimination` | A worked subclass: the round ends when one side is wiped out. |
-| `DotScoreboard`, `DotPlayerScore` | Who is playing and how they are doing. Survives reconnects. |
-| `DotTeam`, `DotTeamManager` | Sides, assignment and deterministic autobalance. |
-| `DotKillFeed` | The last few kills as data, not formatted strings. |
-| `DotSpawnPoint`, `DotSpawnSelector` | Where a player appears, and why that point. |
-| `DotRespawnQueue` | Who is waiting to come back, counted against a target tick. |
-| `DotMatchNetSync` | What to replicate, without naming a GameSpice Net type. |
+| `GSMatch` | The state machine: rounds, clocks, respawns and the win check. |
+| `GSMatchRules` | What winning means and what a kill is worth. Presets `deathmatch(limit)` and `team_deathmatch(limit)`; subclass for a new mode. |
+| `GSRulesElimination` | A worked subclass: the round ends when one side is wiped out. |
+| `GSScoreboard`, `GSPlayerScore` | Who is playing and how they are doing. Survives reconnects. |
+| `GSTeam`, `GSTeamManager` | Sides, assignment and deterministic autobalance. |
+| `GSKillFeed` | The last few kills as data, not formatted strings. |
+| `GSSpawnPoint`, `GSSpawnSelector` | Where a player appears, and why that point. |
+| `GSRespawnQueue` | Who is waiting to come back, counted against a target tick. |
+| `GSMatchNetSync` | What to replicate, without naming a GameSpice Net type. |
 
 ## Settings
 
-### Rules (`DotMatchRules`, one per mode)
+### Rules (`GSMatchRules`, one per mode)
 
 | Setting | Default | What it does |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ What winning means lives in a `DotMatchRules` resource. `DotMatch` never asks wh
 | `pause_when_empty` | true | Drop back to warmup when players fall below `min_players`. Turn off for scheduled matches and tests with no players. |
 | `team_based` | false | Whether the mode has sides. |
 
-### Server (`DotMatchConfig`)
+### Server (`GSMatchConfig`)
 
 Layered like every GameSpice config: defaults, JSON file, `DOT_MATCH_*` environment, `--match-*` command line.
 
@@ -95,7 +95,7 @@ Layered like every GameSpice config: defaults, JSON file, `DOT_MATCH_*` environm
 
 - **A scoreboard that rewards rage-quitting.** Records are keyed by a stable player key, never a peer id, so a reconnecting player gets their kills back and the next player to join does not inherit someone else's.
 - **Two machines that disagree.** Every ordering has an explicit tie-break: scoreboards fall back to the player key, spawn selection to the node name, team assignment to the lower team id, respawn batches to a sort. Dictionary order would make a server and client disagree, which for team assignment means disagreeing about friendly fire.
-- **A round that never ends.** `DotRulesElimination` treats zero teams standing as the end of the round. A grenade that kills the last player on both sides would otherwise leave a server waiting for a side that no longer exists.
+- **A round that never ends.** `GSRulesElimination` treats zero teams standing as the end of the round. A grenade that kills the last player on both sides would otherwise leave a server waiting for a side that no longer exists.
 
 ## Spawning
 

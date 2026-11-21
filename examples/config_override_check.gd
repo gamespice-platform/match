@@ -1,6 +1,6 @@
 extends Node
 
-## DotMatchConfig's rule overrides, offline; also DotGameConfigBinder's cvars when dot-game, dot-profile and dot-server are linked into addons/. Run: godot --headless --path . res://examples/config_override_check.tscn
+## GSMatchConfig's rule overrides, offline; also GSGameConfigBinder's cvars when dot-game, dot-profile and dot-server are linked into addons/. Run: godot --headless --path . res://examples/config_override_check.tscn
 
 const TICK_RATE := 60
 const BINDER := "res://addons/dot_game/runtime/dot_game_config_binder.gd"
@@ -13,7 +13,7 @@ var _failed := 0
 
 
 func _ready() -> void:
-	DotLog.set_level(DotLog.Level.ERROR)
+	GSLog.set_level(GSLog.Level.ERROR)
 	_run.call_deferred()
 
 
@@ -25,30 +25,30 @@ func _check(ok: bool, what: String) -> void:
 	print("  %s  %s" % ["ok  " if ok else "FAIL", what])
 
 
-func _make(rules: DotMatchRules) -> DotMatch:
-	var node := DotMatch.new()
+func _make(rules: GSMatchRules) -> GSMatch:
+	var node := GSMatch.new()
 	node.register_service = false
 	node.rules = rules
-	node.config = DotMatchConfig.new()
+	node.config = GSMatchConfig.new()
 	node.config.tick_rate = TICK_RATE
 	node.config.auto_start = false
 	node.config.log_transitions = false
 	node.config.idle_seconds = 0.0
-	var manager := DotTeamManager.new()
-	manager.teams = DotTeam.standard_pair()
+	var manager := GSTeamManager.new()
+	manager.teams = GSTeam.standard_pair()
 	node.teams = manager
 	node.add_child(manager)
 	add_child(node)
 	return node
 
 
-func _live(node: DotMatch) -> int:
+func _live(node: GSMatch) -> int:
 	node.start(0)
 	node.add_player("a", "A", 1)
 	node.add_player("b", "B", 1)
 	node.add_player("c", "C", 2)
 	var tick := 1
-	while node.state != DotMatch.State.LIVE and tick < 600:
+	while node.state != GSMatch.State.LIVE and tick < 600:
 		node.tick(tick)
 		tick += 1
 	node.scoreboard.set_team("a", 1)
@@ -57,8 +57,8 @@ func _live(node: DotMatch) -> int:
 	return tick
 
 
-func _rules() -> DotMatchRules:
-	var rules := DotMatchRules.team_deathmatch(50)
+func _rules() -> GSMatchRules:
+	var rules := GSMatchRules.team_deathmatch(50)
 	rules.warmup_sec = 1.0
 	rules.countdown_sec = 0.5
 	rules.min_players = 2
@@ -72,10 +72,10 @@ func _run() -> void:
 	var code := 0
 	var node := _make(_rules())
 	var tick := _live(node)
-	_check(node.state == DotMatch.State.LIVE, "match goes live")
-	_check(not DotMatchOverrides.respawn_off(node.config, node.rules), "defaults defer to the rules: respawn on")
-	_check(is_equal_approx(DotMatchOverrides.respawn_delay(node.config, node.rules, null), 3.0), "defaults defer to the rules: delay")
-	_check(DotMatchOverrides.friendly_points(node.config, node.rules) == -1, "defaults defer to the rules: friendly points")
+	_check(node.state == GSMatch.State.LIVE, "match goes live")
+	_check(not GSMatchOverrides.respawn_off(node.config, node.rules), "defaults defer to the rules: respawn on")
+	_check(is_equal_approx(GSMatchOverrides.respawn_delay(node.config, node.rules, null), 3.0), "defaults defer to the rules: delay")
+	_check(GSMatchOverrides.friendly_points(node.config, node.rules) == -1, "defaults defer to the rules: friendly points")
 
 	node.config.respawn_delay_sec = 1.0
 	node.config.friendly_points = -7
@@ -89,9 +89,9 @@ func _run() -> void:
 	_check(not node.respawns.is_waiting("a"), "respawn_disabled = 1 queues no respawn")
 	node.config.respawn_disabled = 0
 	node.rules.respawn_disabled = true
-	_check(not DotMatchOverrides.respawn_off(node.config, node.rules), "respawn_disabled = 0 beats a rules-level off")
+	_check(not GSMatchOverrides.respawn_off(node.config, node.rules), "respawn_disabled = 0 beats a rules-level off")
 	node.config.respawn_disabled = -1
-	_check(DotMatchOverrides.respawn_off(node.config, node.rules), "-1 returns to the rules' off")
+	_check(GSMatchOverrides.respawn_off(node.config, node.rules), "-1 returns to the rules' off")
 	_check(node.config.validate().ok, "the config validates")
 	node.queue_free()
 

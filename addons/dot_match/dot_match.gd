@@ -1,5 +1,5 @@
 @tool
-class_name DotMatch
+class_name GSMatch
 extends Node
 
 ## The match loop: warmup, countdown, live, round end, match end.
@@ -10,13 +10,13 @@ extends Node
 ## runs on, and a server whose round timer and whose netcode disagree about what time
 ## it is produces a round that ends on a different tick for every client.
 ##
-## [b]No autoload.[/b] It registers itself in [DotRegistry] under [constant SERVICE].
+## [b]No autoload.[/b] It registers itself in [GSRegistry] under [constant SERVICE].
 ## A process running two matches — which is what a test does — needs two of these, and
 ## [member service_scope] is how they coexist.
 ##
 ## [codeblock]
-## var match_node := DotMatch.new()
-## match_node.rules = DotMatchRules.deathmatch(30)
+## var match_node := GSMatch.new()
+## match_node.rules = GSMatchRules.deathmatch(30)
 ## match_node.scoreboard = scoreboard
 ## add_child(match_node)
 ##
@@ -37,7 +37,7 @@ enum State {
 	## Waiting for players, or for the warmup clock. Nobody scores.
 	WARMUP,
 	## The round is set up and about to start: everyone present has been placed at a
-	## round spawn and, when [member DotMatchRules.freeze_during_countdown] is on, is
+	## round spawn and, when [member GSMatchRules.freeze_during_countdown] is on, is
 	## held still by the game (see [method is_frozen]). Nobody scores.
 	COUNTDOWN,
 	## The round is running.
@@ -77,25 +77,25 @@ signal freeze_changed(frozen: bool)
 
 ## A round ended. [param winner] is a team id in team mode and 0 otherwise; check
 ## [param outcome] to tell a draw from a free-for-all.
-signal round_ended(round_number: int, winner: int, outcome: DotMatchRules.Outcome)
+signal round_ended(round_number: int, winner: int, outcome: GSMatchRules.Outcome)
 
 ## Every round is over.
-signal match_ended(winner: int, outcome: DotMatchRules.Outcome)
+signal match_ended(winner: int, outcome: GSMatchRules.Outcome)
 
 ## Someone should be put back in the world. The game does the spawning; GameSpice Match only
 ## decides when and where.
-signal respawn_due(key: String, spawn: DotSpawnPoint, tick: int)
+signal respawn_due(key: String, spawn: GSSpawnPoint, tick: int)
 
 ## A kill was recorded, after the scoreboard and the feed have seen it.
-signal kill_recorded(entry: DotKillFeed.Entry)
+signal kill_recorded(entry: GSKillFeed.Entry)
 
-## A player has done nothing for [member DotMatchConfig.idle_seconds]. What to do
+## A player has done nothing for [member GSMatchConfig.idle_seconds]. What to do
 ## about it is a server policy; GameSpice Match only says so.
 signal player_idle(key: String)
 
 @export_group("Configuration")
 
-@export var config: DotMatchConfig = null
+@export var config: GSMatchConfig = null
 
 @export var config_file: String = "user://cfg/match.json"
 
@@ -104,7 +104,7 @@ signal player_idle(key: String)
 @export_group("Rules")
 
 ## What winning means. Required.
-@export var rules: DotMatchRules = null
+@export var rules: GSMatchRules = null
 
 @export_group("Service")
 
@@ -115,19 +115,19 @@ signal player_idle(key: String)
 @export_group("Wiring")
 
 ## Where the spawn points live. Empty searches from the current scene root.
-@export var spawns_ref: DotNodeRef = null
+@export var spawns_ref: GSNodeRef = null
 
 ## Who is playing and how they are doing. Created if left null.
-var scoreboard: DotScoreboard = null
+var scoreboard: GSScoreboard = null
 
 ## Sides and balance. Created if left null; a free-for-all leaves its team list empty.
-var teams: DotTeamManager = null
+var teams: GSTeamManager = null
 
-var feed: DotKillFeed = null
+var feed: GSKillFeed = null
 
-var respawns: DotRespawnQueue = null
+var respawns: GSRespawnQueue = null
 
-var spawns: DotSpawnSelector = null
+var spawns: GSSpawnSelector = null
 
 ## `func(key: String) -> Vector3`. Where a player is, for spawn danger scoring.
 ##
@@ -147,10 +147,10 @@ var state_since_tick: int = 0
 ## Rounds won, by team id. Free-for-all uses key 0 for "rounds played".
 var rounds_won: Dictionary = {}
 
-var _spawn_points: Array[DotSpawnPoint] = []
+var _spawn_points: Array[GSSpawnPoint] = []
 var _registered_name: StringName = &""
 var _current_tick: int = 0
-var _last_outcome: DotMatchRules.Outcome = DotMatchRules.Outcome.NONE
+var _last_outcome: GSMatchRules.Outcome = GSMatchRules.Outcome.NONE
 var _last_winner: int = 0
 
 
@@ -161,7 +161,7 @@ func _ready() -> void:
 	var res := setup()
 
 	if not res.ok:
-		DotLog.result(CHANNEL, "match setup", res)
+		GSLog.result(CHANNEL, "match setup", res)
 		return
 
 	if config.auto_start:
@@ -170,13 +170,13 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	if _registered_name != &"":
-		DotRegistry.unregister_instance(_registered_name, self)
+		GSRegistry.unregister_instance(_registered_name, self)
 		_registered_name = &""
 
 
-func setup() -> DotResult:
+func setup() -> GSResult:
 	if config == null:
-		config = DotMatchConfig.new()
+		config = GSMatchConfig.new()
 
 	if load_layered_config:
 		var loaded := config.load_layered(config_file)
@@ -189,7 +189,7 @@ func setup() -> DotResult:
 		return valid
 
 	if rules == null:
-		rules = DotMatchRules.deathmatch()
+		rules = GSMatchRules.deathmatch()
 
 	var rules_res := rules.validate()
 
@@ -197,15 +197,15 @@ func setup() -> DotResult:
 		return rules_res.wrap("The match rules are not usable.")
 
 	if scoreboard == null:
-		scoreboard = DotScoreboard.new()
+		scoreboard = GSScoreboard.new()
 		scoreboard.name = "Scoreboard"
 		add_child(scoreboard)
 
 	if teams == null:
-		teams = DotTeamManager.new()
+		teams = GSTeamManager.new()
 		teams.name = "Teams"
 		if rules.team_based:
-			teams.teams = DotTeam.standard_pair()
+			teams.teams = GSTeam.standard_pair()
 		add_child(teams)
 
 	teams.scoreboard = scoreboard
@@ -216,17 +216,17 @@ func setup() -> DotResult:
 		return teams_res
 
 	if feed == null:
-		feed = DotKillFeed.new()
+		feed = GSKillFeed.new()
 		feed.name = "KillFeed"
 		add_child(feed)
 
 	if respawns == null:
-		respawns = DotRespawnQueue.new(config.tick_rate)
+		respawns = GSRespawnQueue.new(config.tick_rate)
 	else:
 		respawns.set_tick_rate(config.tick_rate)
 
 	if spawns == null:
-		spawns = DotSpawnSelector.new()
+		spawns = GSSpawnSelector.new()
 
 	# Quietly: a host that builds its spawn points IN CODE adds them on the lines after
 	# `setup`, which is the documented pattern for a map with no scene — so warning here
@@ -236,13 +236,13 @@ func setup() -> DotResult:
 
 	if register_service:
 		_registered_name = (
-			DotRegistry.scoped_name(SERVICE, service_scope)
+			GSRegistry.scoped_name(SERVICE, service_scope)
 			if service_scope != &""
 			else SERVICE
 		)
-		DotRegistry.register(_registered_name, self)
+		GSRegistry.register(_registered_name, self)
 
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 ## Re-collects the spawn points. Call after loading a level.
@@ -276,16 +276,16 @@ func refresh_spawns(announce_empty: bool = true) -> void:
 		# deathmatch with no spawn points is a match nobody can play, and the symptom
 		# is players who never appear rather than anything failing.
 		if announce_empty:
-			DotLog.warn(CHANNEL, "no spawn points found", {"root": root.name})
+			GSLog.warn(CHANNEL, "no spawn points found", {"root": root.name})
 		else:
-			DotLog.debug(CHANNEL, "no spawn points yet", {"root": root.name})
+			GSLog.debug(CHANNEL, "no spawn points yet", {"root": root.name})
 	else:
-		DotLog.debug(CHANNEL, "spawn points", {"count": _spawn_points.size()})
+		GSLog.debug(CHANNEL, "spawn points", {"count": _spawn_points.size()})
 
 
 func _collect_spawns(node: Node) -> void:
 	for child in node.get_children():
-		if child is DotSpawnPoint:
+		if child is GSSpawnPoint:
 			_spawn_points.append(child)
 		_collect_spawns(child)
 
@@ -296,13 +296,13 @@ func _collect_spawns(node: Node) -> void:
 ## this returns does clear the match's spawns today, but it does so behind the one class
 ## that logs and counts them, and any day this returns a copy that caller silently stops
 ## working. game-airdrift did exactly that on every map load until 2026-09-25.
-func spawn_points() -> Array[DotSpawnPoint]:
+func spawn_points() -> Array[GSSpawnPoint]:
 	_forget_freed_spawns()
 	return _spawn_points
 
 
 ## Adds a spawn point that is not in the scene. For a level built at runtime.
-func add_spawn_point(point: DotSpawnPoint) -> void:
+func add_spawn_point(point: GSSpawnPoint) -> void:
 	if point != null and not _spawn_points.has(point):
 		_spawn_points.append(point)
 
@@ -311,7 +311,7 @@ func add_spawn_point(point: DotSpawnPoint) -> void:
 ##
 ## The node is left alone: the match never owned it, and a level that is being torn down
 ## frees its own nodes. A point removed here is simply never chosen again.
-func remove_spawn_point(point: DotSpawnPoint) -> bool:
+func remove_spawn_point(point: GSSpawnPoint) -> bool:
 	if point == null:
 		return false
 	var at := _spawn_points.find(point)
@@ -324,7 +324,7 @@ func remove_spawn_point(point: DotSpawnPoint) -> bool:
 ## Drops every point that was freed under the match.
 ##
 ## [b]The list holds nodes the match never owned.[/b] With no [member spawns_ref],
-## [method refresh_spawns] collects every [DotSpawnPoint] under the current scene, which in
+## [method refresh_spawns] collects every [GSSpawnPoint] under the current scene, which in
 ## a process holding two games (a client replaced by a fresh one, a suite building several)
 ## includes the other game's, and that game frees its nodes when it goes. A freed point left
 ## here crashed the engine outright (signal 11, not a script error) on the next round's
@@ -397,7 +397,7 @@ func is_live() -> bool:
 
 ## Whether the game should hold every player still: the countdown, when the rules freeze
 ## it. GameSpice Match owns no bodies, so the game does the freezing (for example
-## `DotFpsAdminModifiers.set_frozen`) from this or from [signal freeze_changed]; a player
+## `GSFpsAdminModifiers.set_frozen`) from this or from [signal freeze_changed]; a player
 ## spawned during the countdown is spawned frozen too, because this stays true until LIVE.
 func is_frozen() -> bool:
 	return state == State.COUNTDOWN and rules != null and rules.freeze_during_countdown
@@ -418,7 +418,7 @@ func _transition(to: State, tick: int) -> void:
 	state_since_tick = tick
 
 	if config.log_transitions:
-		DotLog.info(CHANNEL, "state", {
+		GSLog.info(CHANNEL, "state", {
 			"from": State.keys()[from],
 			"to": State.keys()[to],
 			"tick": tick,
@@ -589,18 +589,18 @@ func _begin_round_live(current_tick: int) -> void:
 
 func _tick_live(current_tick: int) -> void:
 	if rules.pause_when_empty and not _enough_players():
-		_end_round(current_tick, DotMatchRules.Outcome.ABANDONED)
+		_end_round(current_tick, GSMatchRules.Outcome.ABANDONED)
 		return
 
 	var outcome := rules.round_outcome(
 		scoreboard, teams, seconds_in_state(current_tick)
 	)
 
-	if outcome != DotMatchRules.Outcome.NONE:
+	if outcome != GSMatchRules.Outcome.NONE:
 		_end_round(current_tick, outcome)
 
 
-func _end_round(current_tick: int, outcome: DotMatchRules.Outcome) -> void:
+func _end_round(current_tick: int, outcome: GSMatchRules.Outcome) -> void:
 	var winner := rules.round_winner(scoreboard, teams)
 
 	_last_outcome = outcome
@@ -666,7 +666,7 @@ func _tick_match_end(current_tick: int) -> void:
 # --- Players ---------------------------------------------------------------
 
 ## Adds a player. Assigns them a team in a team mode.
-func add_player(key: String, display_name: String, tick: int, wanted_team: int = 0) -> DotResult:
+func add_player(key: String, display_name: String, tick: int, wanted_team: int = 0) -> GSResult:
 	var record := scoreboard.join(key, display_name)
 	record.last_active_tick = tick
 
@@ -680,12 +680,12 @@ func add_player(key: String, display_name: String, tick: int, wanted_team: int =
 	# join handler puts them in the world before whatever the game does on join has
 	# run, and the respawn path already knows how to pick a safe point.
 	# During the countdown too, and at once: the player arrives frozen with everyone else.
-	if state == State.COUNTDOWN and not DotMatchOverrides.respawn_off(config, rules):
+	if state == State.COUNTDOWN and not GSMatchOverrides.respawn_off(config, rules):
 		respawns.enqueue_at(key, tick)
-	elif is_live() and not DotMatchOverrides.respawn_off(config, rules):
-		respawns.enqueue(key, tick, DotMatchOverrides.respawn_delay(config, rules, null))
+	elif is_live() and not GSMatchOverrides.respawn_off(config, rules):
+		respawns.enqueue(key, tick, GSMatchOverrides.respawn_delay(config, rules, null))
 
-	return DotResult.success(record)
+	return GSResult.success(record)
 
 
 ## Marks a player gone. Their scoreboard record is kept for the rest of the match.
@@ -695,10 +695,10 @@ func remove_player(key: String) -> void:
 	teams.forget(key)
 
 
-func switch_team(key: String, team: int, tick: int) -> DotResult:
+func switch_team(key: String, team: int, tick: int) -> GSResult:
 	if not rules.team_based:
-		return DotResult.fail(
-			DotError.CODE_UNSUPPORTED, "This mode has no teams."
+		return GSResult.fail(
+			GSError.CODE_UNSUPPORTED, "This mode has no teams."
 		)
 
 	return teams.assign(key, tick, team)
@@ -729,9 +729,9 @@ func report_kill(
 	cause: StringName,
 	tick: int,
 	headshot: bool = false
-) -> DotKillFeed.Entry:
+) -> GSKillFeed.Entry:
 	var victim := scoreboard.record_for(victim_key)
-	var killer: DotPlayerScore = (
+	var killer: GSPlayerScore = (
 		null if killer_key == "" or killer_key == victim_key
 		else scoreboard.record_for(killer_key)
 	)
@@ -745,7 +745,7 @@ func report_kill(
 			tick,
 			points,
 			rules.suicide_points,
-			DotMatchOverrides.friendly_points(config, rules)
+			GSMatchOverrides.friendly_points(config, rules)
 		)
 	else:
 		# Outside a live round the death is still real — the player is on the floor —
@@ -757,7 +757,7 @@ func report_kill(
 	# The one funnel every kill passes through, so the line is here and not in the feed.
 	# DEBUG, as dot-combat logs each hit: a kill is a decision the rules made, and on a
 	# busy server INFO per kill is the log being a scoreboard. It answers "did that count".
-	DotLog.debug(CHANNEL, "kill", {
+	GSLog.debug(CHANNEL, "kill", {
 		"killer": killer_key,
 		"victim": victim_key,
 		"cause": String(cause),
@@ -767,8 +767,8 @@ func report_kill(
 	})
 	kill_recorded.emit(entry)
 
-	if not DotMatchOverrides.respawn_off(config, rules):
-		respawns.enqueue(victim_key, tick, DotMatchOverrides.respawn_delay(config, rules, victim))
+	if not GSMatchOverrides.respawn_off(config, rules):
+		respawns.enqueue(victim_key, tick, GSMatchOverrides.respawn_delay(config, rules, victim))
 
 	if is_live():
 		_tick_live(tick)
@@ -827,7 +827,7 @@ func _drain_respawns(current_tick: int) -> void:
 ##
 ## Public so a game can spawn someone outside the queue — a round start it drives
 ## itself, a spectator joining play, an admin's respawn command.
-func choose_spawn(key: String, tick: int, tag: StringName = &"") -> DotSpawnPoint:
+func choose_spawn(key: String, tick: int, tag: StringName = &"") -> GSSpawnPoint:
 	# [b]No points at all is a game that places its own players, and not a fault.[/b] The
 	# selector's "no usable spawn point at all" means it was GIVEN points and could not use
 	# one, which is a mapping mistake worth a warning. An empty list is a different thing
@@ -843,7 +843,7 @@ func choose_spawn(key: String, tick: int, tag: StringName = &"") -> DotSpawnPoin
 	var record := scoreboard.find(key)
 	var team := record.team if record != null else 0
 
-	# The team's own spawns, unless the caller named a tag. DotTeam.spawn_tag was
+	# The team's own spawns, unless the caller named a tag. GSTeam.spawn_tag was
 	# documented from the first version and read by nothing, so every team spawned
 	# from the untagged pool — in a team game, in the other team's base.
 	if tag == &"" and team > 0 and teams != null:
@@ -884,7 +884,7 @@ func _threats_against(team: int, key: String) -> Array[Vector3]:
 
 ## Seconds of spawn protection a freshly spawned player gets, in ticks.
 ##
-## Returned in ticks because that is what `DotHealth.spawn_protection_ticks` wants and
+## Returned in ticks because that is what `GSHealth.spawn_protection_ticks` wants and
 ## converting at the call site is how the two end up disagreeing.
 func spawn_protection_ticks() -> int:
 	return int(round(rules.spawn_protection_sec * float(config.tick_rate)))
@@ -921,7 +921,7 @@ func last_winner() -> int:
 	return _last_winner
 
 
-func last_outcome() -> DotMatchRules.Outcome:
+func last_outcome() -> GSMatchRules.Outcome:
 	return _last_outcome
 
 
@@ -936,7 +936,7 @@ func describe() -> Dictionary:
 		"remaining": seconds_remaining(),
 		"players": scoreboard.present_count(),
 		"rounds_won": rounds_won,
-		"last_outcome": DotMatchRules.Outcome.keys()[_last_outcome],
+		"last_outcome": GSMatchRules.Outcome.keys()[_last_outcome],
 		"last_winner": _last_winner,
 		"spawns": _spawn_points.size(),
 		"respawning": respawns.waiting_count(),

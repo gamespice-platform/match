@@ -23,7 +23,7 @@ const SECTIONS := 20
 
 
 func _ready() -> void:
-	DotLog.set_level(DotLog.Level.ERROR)
+	GSLog.set_level(GSLog.Level.ERROR)
 	_run.call_deferred()
 
 
@@ -82,28 +82,28 @@ func _run() -> void:
 func _test_teams() -> void:
 	_section("teams")
 
-	var red := DotTeam.make(1, "Red")
+	var red := GSTeam.make(1, "Red")
 	_check(red.validate().ok, "a team with a positive id validates")
 
-	var zero := DotTeam.make(0, "Nobody")
+	var zero := GSTeam.make(0, "Nobody")
 	zero.id = 0
 	_check(
 		not zero.validate().ok,
 		"team id 0 is refused, because 0 means 'no team' everywhere"
 	)
 
-	var pair := DotTeam.standard_pair()
+	var pair := GSTeam.standard_pair()
 	_check(pair.size() == 2 and pair[0].id == 1, "the standard pair is 1 and 2")
 
-	var spectators := DotTeam.spectators()
+	var spectators := GSTeam.spectators()
 	_check(spectators.is_spectator, "spectators are marked as such")
 
 	# `[team-reindex-1]`: a list assigned after the manager has been read is the list it
 	# answers with. Armed: without the setter the second read still says "Red".
-	var manager := DotTeamManager.new()
-	manager.teams = DotTeam.standard_pair()
+	var manager := GSTeamManager.new()
+	manager.teams = GSTeam.standard_pair()
 	var before := manager.team(1).display_name if manager.team(1) != null else ""
-	manager.teams = [DotTeam.make(1, "Drivers"), DotTeam.make(2, "Runners")] as Array[DotTeam]
+	manager.teams = [GSTeam.make(1, "Drivers"), GSTeam.make(2, "Runners")] as Array[GSTeam]
 	var after := manager.team(1).display_name if manager.team(1) != null else ""
 	_check(before != "Drivers" and after == "Drivers" and manager.team(2).display_name == "Runners",
 		"assigning a new team list after the first read is the list the manager answers with",
@@ -117,7 +117,7 @@ func _test_teams() -> void:
 func _test_scoreboard() -> void:
 	_section("scoreboard")
 
-	var board := DotScoreboard.new()
+	var board := GSScoreboard.new()
 	add_child(board)
 
 	var alice := board.join("alice", "Alice")
@@ -166,7 +166,7 @@ func _test_scoreboard() -> void:
 
 	# The tie-break on the key is what stops a scoreboard reordering itself between
 	# two machines that iterate their dictionaries differently.
-	var tied := DotScoreboard.new()
+	var tied := GSScoreboard.new()
 	add_child(tied)
 	for name_str in ["zoe", "adam", "mike"]:
 		tied.join(name_str, name_str)
@@ -187,7 +187,7 @@ func _test_scoreboard() -> void:
 func _test_scoreboard_reconnect() -> void:
 	_section("scoreboard: reconnecting")
 
-	var board := DotScoreboard.new()
+	var board := GSScoreboard.new()
 	add_child(board)
 
 	board.join("alice", "Alice")
@@ -203,7 +203,7 @@ func _test_scoreboard_reconnect() -> void:
 	_check(back.present, "and is present again")
 
 	# Eviction must never take a present player's record.
-	var small := DotScoreboard.new()
+	var small := GSScoreboard.new()
 	small.max_records = 8
 	add_child(small)
 
@@ -238,12 +238,12 @@ func _test_scoreboard_reconnect() -> void:
 func _test_kill_feed() -> void:
 	_section("kill feed")
 
-	var feed := DotKillFeed.new()
+	var feed := GSKillFeed.new()
 	feed.capacity = 4
 	add_child(feed)
 
-	var killer := DotPlayerScore.make("alice", "Alice")
-	var victim := DotPlayerScore.make("bob", "Bob")
+	var killer := GSPlayerScore.make("alice", "Alice")
+	var victim := GSPlayerScore.make("bob", "Bob")
 
 	var entry := feed.add_kill(killer, victim, &"rifle", 100, true)
 	_check(entry.headshot, "a headshot is marked")
@@ -281,7 +281,7 @@ func _test_kill_feed() -> void:
 func _test_respawn_queue() -> void:
 	_section("respawn queue")
 
-	var queue := DotRespawnQueue.new(TICK_RATE)
+	var queue := GSRespawnQueue.new(TICK_RATE)
 
 	queue.enqueue("alice", 100, 1.0)
 	_check(queue.is_waiting("alice"), "a dead player waits")
@@ -317,7 +317,7 @@ func _test_respawn_queue() -> void:
 func _test_spawn_points() -> void:
 	_section("spawn points")
 
-	var point := DotSpawnPoint.make(Vector3(1.0, 2.0, 3.0), 1)
+	var point := GSSpawnPoint.make(Vector3(1.0, 2.0, 3.0), 1)
 	add_child(point)
 
 	_check(point.is_available(0), "a fresh point is available")
@@ -352,7 +352,7 @@ func _test_spawn_selection() -> void:
 	_section("spawn selection")
 
 	var points := _make_spawns(5)
-	var selector := DotSpawnSelector.new()
+	var selector := GSSpawnSelector.new()
 
 	# One enemy standing on the first point. The furthest is the right answer.
 	selector.threats = [Vector3.ZERO]
@@ -366,7 +366,7 @@ func _test_spawn_selection() -> void:
 
 	# The tie-break. With no threats every point scores identically, and on a
 	# symmetric map that is most of them.
-	var tie_selector := DotSpawnSelector.new()
+	var tie_selector := GSSpawnSelector.new()
 	var tie_points := _make_spawns(3)
 	var first := tie_selector.choose(tie_points, 1000)
 	for point in tie_points:
@@ -392,26 +392,26 @@ func _test_spawn_selection() -> void:
 			text += char(97 + rng.randi() % 26)
 		point.name = text
 		lowest = text if lowest == "" or text < lowest else lowest
-	var by_name := DotSpawnSelector.new().choose(named, 1000)
+	var by_name := GSSpawnSelector.new().choose(named, 1000)
 	_check(by_name != null and String(by_name.name) == lowest,
 		"a tie goes to the name first in text order", "%s, want %s" % [by_name.name if by_name != null else "-", lowest])
 	for point in named:
 		point.mark_used(500)
-	var least := DotSpawnSelector.new().choose(named, 501)
+	var least := GSSpawnSelector.new().choose(named, 501)
 	_check(least != null and String(least.name) == lowest,
 		"and so does a tie among points all on cooldown", "%s, want %s" % [least.name if least != null else "-", lowest])
 	_free_spawns(named)
 
 	# Occupied points are skipped entirely, not merely scored badly: spawning there
 	# is a telefrag.
-	var blocked := DotSpawnSelector.new()
+	var blocked := GSSpawnSelector.new()
 	blocked.threats = [Vector3(40.0, 0.0, 0.0)]
 	blocked.blocked_radius = 2.0
 	var away := blocked.choose(points, 2000)
 	_check(away.name != "Spawn04", "an occupied point is not chosen", away.name)
 
 	# Everything on cooldown: spawning badly beats not spawning at all.
-	var busy := DotSpawnSelector.new()
+	var busy := GSSpawnSelector.new()
 	for point in points:
 		point.mark_used(3000)
 	var fallback := busy.choose(points, 3001)
@@ -424,7 +424,7 @@ func _test_spawn_selection() -> void:
 	for point in points:
 		point.team = 1
 		point.reset()
-	var wrong_team := DotSpawnSelector.new()
+	var wrong_team := GSSpawnSelector.new()
 	var anyway := wrong_team.choose(points, 4000, 2)
 	_check(
 		anyway != null,
@@ -441,10 +441,10 @@ func _test_spawn_selection() -> void:
 func _test_rules() -> void:
 	_section("rules")
 
-	var rules := DotMatchRules.deathmatch(10)
+	var rules := GSMatchRules.deathmatch(10)
 	_check(rules.validate().ok, "a deathmatch ruleset validates")
 
-	var board := DotScoreboard.new()
+	var board := GSScoreboard.new()
 	add_child(board)
 
 	var alice := board.join("alice", "Alice")
@@ -463,23 +463,23 @@ func _test_rules() -> void:
 
 	alice.score = 10
 	_check(
-		rules.round_outcome(board, null, 0.0) == DotMatchRules.Outcome.SCORE,
+		rules.round_outcome(board, null, 0.0) == GSMatchRules.Outcome.SCORE,
 		"the score limit ends a round"
 	)
 
 	alice.score = 0
 	_check(
-		rules.round_outcome(board, null, 700.0) == DotMatchRules.Outcome.TIME,
+		rules.round_outcome(board, null, 700.0) == GSMatchRules.Outcome.TIME,
 		"and so does the clock"
 	)
 	_check(
-		rules.round_outcome(board, null, 0.0) == DotMatchRules.Outcome.NONE,
+		rules.round_outcome(board, null, 0.0) == GSMatchRules.Outcome.NONE,
 		"and otherwise it keeps going"
 	)
 
 	# A round with no respawning, one round, and no clock never ends and nobody ever
 	# comes back. That is a server nobody can leave except by disconnecting.
-	var stuck := DotMatchRules.new()
+	var stuck := GSMatchRules.new()
 	stuck.respawn_disabled = true
 	stuck.rounds_to_win = 1
 	stuck.time_limit_sec = 0.0
@@ -502,32 +502,32 @@ func _test_flow_warmup() -> void:
 	var node := _make_match(_quick_rules())
 	node.start(0)
 
-	_check(node.state == DotMatch.State.WARMUP, "a match starts in warmup")
+	_check(node.state == GSMatch.State.WARMUP, "a match starts in warmup")
 
 	var tick := _advance(node, 1, 300)
 	_check(
-		node.state == DotMatch.State.WARMUP,
+		node.state == GSMatch.State.WARMUP,
 		"and stays there with nobody connected",
-		DotMatch.State.keys()[node.state]
+		GSMatch.State.keys()[node.state]
 	)
 
 	node.add_player("alice", "Alice", tick)
 	tick = _advance(node, tick, 200)
 	_check(
-		node.state == DotMatch.State.WARMUP,
+		node.state == GSMatch.State.WARMUP,
 		"and with only one of the two it needs"
 	)
 
 	node.add_player("bob", "Bob", tick)
 	tick = _advance(node, tick, 120)
 	_check(
-		node.state != DotMatch.State.WARMUP,
+		node.state != GSMatch.State.WARMUP,
 		"then leaves warmup once there are enough",
-		DotMatch.State.keys()[node.state]
+		GSMatch.State.keys()[node.state]
 	)
 
 	tick = _advance(node, tick, 60)
-	_check(node.state == DotMatch.State.LIVE, "and the round goes live")
+	_check(node.state == GSMatch.State.LIVE, "and the round goes live")
 	_check(node.round_number == 1, "as round one")
 
 	# A kill during warmup must not score. Without the check the first player to
@@ -565,7 +565,7 @@ func _test_begin_round_now() -> void:
 	node.round_ended.connect(func(n: int, _w: int, _o: int) -> void: ended.append(n))
 	node.start(0)
 	node.add_player("alice", "Alice", 0)
-	_check(node.begin_round_now(5) and node.state == DotMatch.State.LIVE and began == [1],
+	_check(node.begin_round_now(5) and node.state == GSMatch.State.LIVE and began == [1],
 		"from warmup, alone, a round goes live on that tick")
 	node.add_player("bob", "Bob", 6)
 	node.report_kill("alice", "bob", &"rifle", 7)
@@ -581,7 +581,7 @@ func _test_begin_round_now() -> void:
 
 
 ## A full countdown, to see players_released fire once at LIVE.
-func node_released_ok(rules: DotMatchRules) -> bool:
+func node_released_ok(rules: GSMatchRules) -> bool:
 	var m := _make_match(rules.duplicate())
 	var hits: Array = []
 	m.players_released.connect(func(t: int) -> void: hits.append(t))
@@ -589,7 +589,7 @@ func node_released_ok(rules: DotMatchRules) -> bool:
 	m.add_player("a", "A", 0)
 	m.add_player("b", "B", 0)
 	_advance(m, 1, 124)
-	var ok := m.state == DotMatch.State.LIVE and hits.size() == 1
+	var ok := m.state == GSMatch.State.LIVE and hits.size() == 1
 	m.queue_free()
 	remove_child(m)
 	return ok
@@ -598,7 +598,7 @@ func node_released_ok(rules: DotMatchRules) -> bool:
 func _test_countdown_flow() -> void:
 	_section("flow: one warmup, then a frozen countdown before every round")
 
-	var rules := DotMatchRules.deathmatch(1)
+	var rules := GSMatchRules.deathmatch(1)
 	rules.warmup_sec = 1.0
 	rules.countdown_sec = 1.0
 	rules.time_limit_sec = 10.0
@@ -618,7 +618,7 @@ func _test_countdown_flow() -> void:
 	var freezes: Array = []
 	var prepared: Array = []
 	var started: Array = []
-	node.respawn_due.connect(func(key: String, _s: DotSpawnPoint, t: int) -> void: spawned.append([key, node.state, t]))
+	node.respawn_due.connect(func(key: String, _s: GSSpawnPoint, t: int) -> void: spawned.append([key, node.state, t]))
 	node.state_changed.connect(func(_f: int, to: int) -> void: states.append(to))
 	node.freeze_changed.connect(func(f: bool) -> void: freezes.append(f))
 	node.round_preparing.connect(func(n: int) -> void: prepared.append(n))
@@ -630,10 +630,10 @@ func _test_countdown_flow() -> void:
 	node.add_player("bob", "Bob", 0)
 
 	var tick := _advance(node, 1, 61)
-	_check(node.state == DotMatch.State.COUNTDOWN, "warmup ends in the countdown", DotMatch.State.keys()[node.state])
+	_check(node.state == GSMatch.State.COUNTDOWN, "warmup ends in the countdown", GSMatch.State.keys()[node.state])
 	_check(node.is_frozen() and freezes == [true], "which is frozen, announced once")
 	_check(prepared == [1] and node.round_number == 1, "round one is announced as preparing")
-	_check(spawned.size() == 2 and spawned[0][1] == DotMatch.State.COUNTDOWN,
+	_check(spawned.size() == 2 and spawned[0][1] == GSMatch.State.COUNTDOWN,
 		"everyone is placed at the countdown's entry", str(spawned.size()))
 
 	# Not before the countdown: nobody was spawned by the warmup.
@@ -647,11 +647,11 @@ func _test_countdown_flow() -> void:
 	node.report_kill("", "bob", &"world", tick)
 	_check(node.scoreboard.find("bob").score == 0, "a kill in the countdown scores nothing")
 	tick = _advance(node, tick, 40)
-	_check(spawned[-1][0] == "bob" and spawned[-1][1] == DotMatch.State.COUNTDOWN,
+	_check(spawned[-1][0] == "bob" and spawned[-1][1] == GSMatch.State.COUNTDOWN,
 		"a death in the countdown respawns during it")
 
 	tick = _advance(node, tick, 40)
-	_check(node.state == DotMatch.State.LIVE and not node.is_frozen(), "then it goes live and lets go")
+	_check(node.state == GSMatch.State.LIVE and not node.is_frozen(), "then it goes live and lets go")
 	_check(freezes == [true, false] and started == [1], "round_started and the unfreeze come at LIVE")
 	var before_live := spawned.size()
 	tick = _advance(node, tick, 5)
@@ -659,25 +659,25 @@ func _test_countdown_flow() -> void:
 
 	# The round ends; the intermission leads to a countdown, not to LIVE.
 	node.report_kill("alice", "bob", &"rifle", tick)
-	_check(node.state == DotMatch.State.INTERMISSION and not node.is_frozen(), "a won round gives an intermission, unfrozen")
+	_check(node.state == GSMatch.State.INTERMISSION and not node.is_frozen(), "a won round gives an intermission, unfrozen")
 	var before_inter := spawned.size()
 	tick = _advance(node, tick, 62)
-	_check(node.state == DotMatch.State.COUNTDOWN and node.is_frozen(), "the intermission leads to a frozen countdown")
+	_check(node.state == GSMatch.State.COUNTDOWN and node.is_frozen(), "the intermission leads to a frozen countdown")
 	_check(prepared == [1, 2] and node.round_number == 2, "round two is preparing")
 	_check(spawned.size() == before_inter + 3 and node.scoreboard.find("alice").score == 0,
 		"everyone is placed again and the scores are reset")
 	tick = _advance(node, tick, 62)
-	_check(node.state == DotMatch.State.LIVE and started == [1, 2], "round two goes live")
+	_check(node.state == GSMatch.State.LIVE and started == [1, 2], "round two goes live")
 
 	# Short of players: back to the one warmup, and the round number is handed back.
 	node.report_kill("alice", "bob", &"rifle", tick)
 	tick = _advance(node, tick, 62)
-	_check(node.state == DotMatch.State.COUNTDOWN and node.round_number == 3, "round three is preparing")
+	_check(node.state == GSMatch.State.COUNTDOWN and node.round_number == 3, "round three is preparing")
 	node.remove_player("alice")
 	node.remove_player("bob")
 	node.remove_player("carol")
 	tick = _advance(node, tick, 2)
-	_check(node.state == DotMatch.State.WARMUP and not node.is_frozen() and node.round_number == 2,
+	_check(node.state == GSMatch.State.WARMUP and not node.is_frozen() and node.round_number == 2,
 		"a countdown that loses its players returns to warmup, unfrozen")
 	_check(freezes[-1] == false, "and says so")
 
@@ -691,9 +691,9 @@ func _test_countdown_flow() -> void:
 	fin.add_player("b", "B", 0)
 	var ftick := _advance(fin, 1, 124)
 	fin.report_kill("a", "b", &"rifle", ftick)
-	_check(fin.state == DotMatch.State.MATCH_END, "the match ends", DotMatch.State.keys()[fin.state])
+	_check(fin.state == GSMatch.State.MATCH_END, "the match ends", GSMatch.State.keys()[fin.state])
 	ftick = _advance(fin, ftick, 62)
-	_check(fin.state == DotMatch.State.COUNTDOWN and fin_states.count(DotMatch.State.WARMUP) == 1 and fin.is_frozen(),
+	_check(fin.state == GSMatch.State.COUNTDOWN and fin_states.count(GSMatch.State.WARMUP) == 1 and fin.is_frozen(),
 		"the match end leads to a frozen countdown with players present, not a second warmup")
 	_check(fin.round_number == 1 and fin.rounds_won.is_empty(), "as round one of a fresh match")
 
@@ -706,11 +706,11 @@ func _test_countdown_flow() -> void:
 	var etick := _advance(empty, 1, 62)
 	etick = _advance(empty, etick, 62)
 	empty.report_kill("a", "b", &"rifle", etick)
-	_check(empty.state == DotMatch.State.MATCH_END, "a one-round match ends", DotMatch.State.keys()[empty.state])
+	_check(empty.state == GSMatch.State.MATCH_END, "a one-round match ends", GSMatch.State.keys()[empty.state])
 	empty.remove_player("a")
 	empty.remove_player("b")
 	etick = _advance(empty, etick, 62)
-	_check(empty.state == DotMatch.State.WARMUP, "a match end with nobody left is a warmup")
+	_check(empty.state == GSMatch.State.WARMUP, "a match end with nobody left is a warmup")
 	_check(empty.rules.freeze_during_countdown and empty.rules.countdown_sec == 1.0, "freezing is on by default")
 
 	var off := _make_match(rules.duplicate())
@@ -719,7 +719,7 @@ func _test_countdown_flow() -> void:
 	off.add_player("a", "A", 0)
 	off.add_player("b", "B", 0)
 	_advance(off, 1, 62)
-	_check(off.state == DotMatch.State.COUNTDOWN and not off.is_frozen(), "a mode can turn the freeze off")
+	_check(off.state == GSMatch.State.COUNTDOWN and not off.is_frozen(), "a mode can turn the freeze off")
 
 	# begin_round_now inside a countdown goes live on the prepared round.
 	var cut := _make_match(rules.duplicate())
@@ -729,15 +729,15 @@ func _test_countdown_flow() -> void:
 	var released: Array = []
 	cut.round_preparing.connect(func(n: int) -> void: cut_prep.append(n))
 	cut.round_started.connect(func(n: int) -> void: cut_start.append(n))
-	cut.respawn_due.connect(func(k: String, _s: DotSpawnPoint, _t: int) -> void: cut_spawn.append(k))
+	cut.respawn_due.connect(func(k: String, _s: GSSpawnPoint, _t: int) -> void: cut_spawn.append(k))
 	cut.players_released.connect(func(t: int) -> void: released.append(t))
 	cut.start(0)
 	cut.add_player("a", "A", 0)
 	cut.add_player("b", "B", 0)
 	var ctick := _advance(cut, 1, 62)
-	_check(cut.state == DotMatch.State.COUNTDOWN and cut_spawn.size() == 2, "a countdown to cut short")
+	_check(cut.state == GSMatch.State.COUNTDOWN and cut_spawn.size() == 2, "a countdown to cut short")
 	cut.begin_round_now(ctick)
-	_check(cut.state == DotMatch.State.LIVE and cut_prep == [1] and cut_start == [1] and cut.round_number == 1,
+	_check(cut.state == GSMatch.State.LIVE and cut_prep == [1] and cut_start == [1] and cut.round_number == 1,
 		"begin_round_now in a countdown keeps the number", str([cut_prep, cut_start]))
 	_check(cut_spawn.size() == 2 and released == [ctick], "and places nobody twice, releasing once")
 	# A natural release announces itself too, with protection to re-arm.
@@ -746,14 +746,14 @@ func _test_countdown_flow() -> void:
 	# stop() in a countdown hands the number back and drops the queue.
 	var halt := _make_match(rules.duplicate())
 	var halt_spawn: Array = []
-	halt.respawn_due.connect(func(k: String, _s: DotSpawnPoint, _t: int) -> void: halt_spawn.append(k))
+	halt.respawn_due.connect(func(k: String, _s: GSSpawnPoint, _t: int) -> void: halt_spawn.append(k))
 	halt.start(0)
 	halt.add_player("a", "A", 0)
 	halt.add_player("b", "B", 0)
 	var htick := _advance(halt, 1, 62)
 	halt.report_kill("", "a", &"world", htick)
 	halt.stop(htick)
-	_check(halt.state == DotMatch.State.IDLE and halt.round_number == 0 and not halt.respawns.is_waiting("a"),
+	_check(halt.state == GSMatch.State.IDLE and halt.round_number == 0 and not halt.respawns.is_waiting("a"),
 		"stop in a countdown returns the round number and clears the queue")
 
 	# pause_when_empty off: a countdown runs to LIVE with nobody present.
@@ -766,7 +766,7 @@ func _test_countdown_flow() -> void:
 	calm.remove_player("a")
 	calm.remove_player("b")
 	ktick = _advance(calm, ktick, 62)
-	_check(calm.state == DotMatch.State.LIVE and calm.round_number == 1, "pause_when_empty off: the countdown goes live regardless")
+	_check(calm.state == GSMatch.State.LIVE and calm.round_number == 1, "pause_when_empty off: the countdown goes live regardless")
 
 	# The replicated freeze flag.
 	var wire := FakeBehaviour.new()
@@ -776,12 +776,12 @@ func _test_countdown_flow() -> void:
 	net.add_player("a", "A", 0)
 	net.add_player("b", "B", 0)
 	_advance(net, 1, 62)
-	DotMatchNetSync.pull(net, wire, 62)
-	_check(wire.net_state == int(DotMatch.State.COUNTDOWN) and not DotMatchNetSync.is_frozen(wire),
+	GSMatchNetSync.pull(net, wire, 62)
+	_check(wire.net_state == int(GSMatch.State.COUNTDOWN) and not GSMatchNetSync.is_frozen(wire),
 		"a client learns the countdown does not freeze, whatever its own rules say")
 	net.rules.freeze_during_countdown = true
-	DotMatchNetSync.pull(net, wire, 62)
-	_check(DotMatchNetSync.is_frozen(wire), "and that it does when it does")
+	GSMatchNetSync.pull(net, wire, 62)
+	_check(GSMatchNetSync.is_frozen(wire), "and that it does when it does")
 	wire.free()
 
 	# countdown_sec 0 keeps the old order: live first, then placed.
@@ -789,12 +789,12 @@ func _test_countdown_flow() -> void:
 	zero.rules.countdown_sec = 0.0
 	var order: Array = []
 	zero.round_started.connect(func(_n: int) -> void: order.append("started"))
-	zero.respawn_due.connect(func(_k: String, _s: DotSpawnPoint, _t: int) -> void: order.append("spawn"))
+	zero.respawn_due.connect(func(_k: String, _s: GSSpawnPoint, _t: int) -> void: order.append("spawn"))
 	zero.start(0)
 	zero.add_player("a", "A", 0)
 	zero.add_player("b", "B", 0)
 	_advance(zero, 1, 62)
-	_check(zero.state == DotMatch.State.LIVE and order == ["started", "spawn", "spawn"] and not zero.is_frozen(),
+	_check(zero.state == GSMatch.State.LIVE and order == ["started", "spawn", "spawn"] and not zero.is_frozen(),
 		"a zero countdown skips the freeze and places players after round_started", str(order))
 
 	_free_spawns(points)
@@ -811,7 +811,7 @@ func _test_countdown_flow() -> void:
 func _test_freed_spawn_points() -> void:
 	_section("a spawn point freed under the match is forgotten, not reset")
 
-	var foreign := DotSpawnPoint.make(Vector3(5.0, 0.0, 0.0))
+	var foreign := GSSpawnPoint.make(Vector3(5.0, 0.0, 0.0))
 	foreign.name = "OtherGamesSpawn"
 	add_child(foreign)
 	var own := _make_match(_quick_rules())
@@ -825,9 +825,9 @@ func _test_freed_spawn_points() -> void:
 	foreign.free()
 
 	var tick := _advance(own, 1, int(2.0 * float(TICK_RATE)))
-	_check(own.state == DotMatch.State.LIVE, "the round still begins after it was freed", str(own.state))
+	_check(own.state == GSMatch.State.LIVE, "the round still begins after it was freed", str(own.state))
 	var left := own.spawn_points()
-	_check(left.size() == before - 1 and left.all(func(p: DotSpawnPoint) -> bool: return is_instance_valid(p)),
+	_check(left.size() == before - 1 and left.all(func(p: GSSpawnPoint) -> bool: return is_instance_valid(p)),
 		"and the freed point is gone from the list, the others kept", "%d of %d" % [left.size(), before])
 	_check(own.choose_spawn("alice", tick) != null, "and a spawn is still chosen from them")
 	_check(own.begin_round_now(tick + 1) and own.round_number == 2, "a round started now walks the list too")
@@ -846,16 +846,16 @@ func _test_flow_deathmatch() -> void:
 	node.add_player("bob", "Bob", 0)
 
 	var tick := _advance(node, 1, 150)
-	_check(node.state == DotMatch.State.LIVE, "the round is live")
+	_check(node.state == GSMatch.State.LIVE, "the round is live")
 
 	var respawned: Array[String] = []
 	node.respawn_due.connect(
-		func(key: String, _s: DotSpawnPoint, _t: int) -> void: respawned.append(key)
+		func(key: String, _s: GSSpawnPoint, _t: int) -> void: respawned.append(key)
 	)
 
 	var ended: Array[int] = []
 	node.round_ended.connect(
-		func(_r: int, winner: int, _o: DotMatchRules.Outcome) -> void:
+		func(_r: int, winner: int, _o: GSMatchRules.Outcome) -> void:
 			ended.append(winner)
 	)
 
@@ -870,12 +870,12 @@ func _test_flow_deathmatch() -> void:
 	)
 	_check(ended.size() == 1, "which ends the round")
 	_check(
-		node.state == DotMatch.State.MATCH_END,
+		node.state == GSMatch.State.MATCH_END,
 		"and, in a one-round match, the match",
-		DotMatch.State.keys()[node.state]
+		GSMatch.State.keys()[node.state]
 	)
 	_check(
-		node.last_outcome() == DotMatchRules.Outcome.SCORE,
+		node.last_outcome() == GSMatchRules.Outcome.SCORE,
 		"reporting the score limit as the reason"
 	)
 	# Two, not three. The third kill reached the score limit, and ending a round
@@ -894,12 +894,12 @@ func _test_flow_deathmatch() -> void:
 	timed.add_player("alice", "Alice", 0)
 	timed.add_player("bob", "Bob", 0)
 	var timed_tick := _advance(timed, 1, 150)
-	_check(timed.state == DotMatch.State.LIVE, "a timed round starts")
+	_check(timed.state == GSMatch.State.LIVE, "a timed round starts")
 	timed_tick = _advance(timed, timed_tick, 200)
 	_check(
-		timed.last_outcome() == DotMatchRules.Outcome.TIME,
+		timed.last_outcome() == GSMatchRules.Outcome.TIME,
 		"and ends on the clock",
-		DotMatchRules.Outcome.keys()[timed.last_outcome()]
+		GSMatchRules.Outcome.keys()[timed.last_outcome()]
 	)
 
 	node.queue_free()
@@ -912,7 +912,7 @@ func _test_flow_deathmatch() -> void:
 func _test_flow_rounds() -> void:
 	_section("flow: a best-of series")
 
-	var rules := DotMatchRules.team_deathmatch(2)
+	var rules := GSMatchRules.team_deathmatch(2)
 	rules.warmup_sec = 0.5
 	rules.countdown_sec = 0.2
 	rules.time_limit_sec = 30.0
@@ -928,7 +928,7 @@ func _test_flow_rounds() -> void:
 	node.add_player("bob", "Bob", 0, 2)
 
 	var tick := _advance(node, 1, 80)
-	_check(node.state == DotMatch.State.LIVE, "round one is live")
+	_check(node.state == GSMatch.State.LIVE, "round one is live")
 
 	# Red wins twice.
 	for round_index in range(2):
@@ -944,17 +944,17 @@ func _test_flow_rounds() -> void:
 
 		if round_index == 0:
 			_check(
-				node.state == DotMatch.State.INTERMISSION,
+				node.state == GSMatch.State.INTERMISSION,
 				"and the series continues",
-				DotMatch.State.keys()[node.state]
+				GSMatch.State.keys()[node.state]
 			)
 			tick = _advance(node, tick, 80)
-			_check(node.state == DotMatch.State.LIVE, "into round two")
+			_check(node.state == GSMatch.State.LIVE, "into round two")
 
 	_check(
-		node.state == DotMatch.State.MATCH_END,
+		node.state == GSMatch.State.MATCH_END,
 		"two round wins ends the match",
-		DotMatch.State.keys()[node.state]
+		GSMatch.State.keys()[node.state]
 	)
 	_check(node.last_winner() == 1, "with red as the winner")
 
@@ -973,7 +973,7 @@ func _test_flow_rounds() -> void:
 func _test_team_assignment() -> void:
 	_section("team assignment")
 
-	var node := _make_match(DotMatchRules.team_deathmatch(), true)
+	var node := _make_match(GSMatchRules.team_deathmatch(), true)
 
 	var first := node.add_player("alice", "Alice", 0)
 	_check(first.ok, "a player joins")
@@ -1019,7 +1019,7 @@ func _test_team_assignment() -> void:
 func _test_balance() -> void:
 	_section("autobalance")
 
-	var node := _make_match(DotMatchRules.team_deathmatch(), true)
+	var node := _make_match(GSMatchRules.team_deathmatch(), true)
 	node.teams.balance_grace_ticks = 0
 
 	# Build a lopsided game by assigning directly, the way a game that saved teams
@@ -1035,7 +1035,7 @@ func _test_balance() -> void:
 	_check(node.teams.is_balanced(), "until the sides are even")
 
 	# The grace period is the whole reason a player is not switched twice in a row.
-	var graced := _make_match(DotMatchRules.team_deathmatch(), true)
+	var graced := _make_match(GSMatchRules.team_deathmatch(), true)
 	graced.teams.balance_grace_ticks = 600
 
 	for index in range(4):
@@ -1068,7 +1068,7 @@ func _test_balance() -> void:
 func _test_elimination() -> void:
 	_section("elimination")
 
-	var rules := DotRulesElimination.make(30.0)
+	var rules := GSRulesElimination.make(30.0)
 	rules.warmup_sec = 0.2
 	rules.countdown_sec = 0.2
 	rules.min_players = 2
@@ -1084,23 +1084,23 @@ func _test_elimination() -> void:
 	node.add_player("bob", "Bob", 0, 2)
 
 	var tick := _advance(node, 1, 60)
-	_check(node.state == DotMatch.State.LIVE, "an elimination round starts")
+	_check(node.state == GSMatch.State.LIVE, "an elimination round starts")
 
 	alive["bob"] = false
 	node.report_kill("alice", "bob", &"rifle", tick)
 	tick = _advance(node, tick, 2)
 
 	_check(
-		node.last_outcome() == DotMatchRules.Outcome.ELIMINATION,
+		node.last_outcome() == GSMatchRules.Outcome.ELIMINATION,
 		"wiping a side ends the round",
-		DotMatchRules.Outcome.keys()[node.last_outcome()]
+		GSMatchRules.Outcome.keys()[node.last_outcome()]
 	)
 	_check(node.last_winner() == 1, "and the survivors win")
 
 	# A mutual wipe. Zero teams standing must end the round as a draw, not run
 	# forever waiting for a side that no longer exists.
-	var mutual := _make_match(DotRulesElimination.make(30.0), true)
-	(mutual.rules as DotRulesElimination).alive_fn = func(_k: String) -> bool:
+	var mutual := _make_match(GSRulesElimination.make(30.0), true)
+	(mutual.rules as GSRulesElimination).alive_fn = func(_k: String) -> bool:
 		return false
 	mutual.rules.warmup_sec = 0.2
 	mutual.rules.countdown_sec = 0.2
@@ -1110,12 +1110,12 @@ func _test_elimination() -> void:
 	mutual.add_player("bob", "Bob", 0, 2)
 	_advance(mutual, 1, 60)
 	_check(
-		mutual.last_outcome() == DotMatchRules.Outcome.ELIMINATION,
+		mutual.last_outcome() == GSMatchRules.Outcome.ELIMINATION,
 		"a mutual wipe ends the round rather than hanging it"
 	)
 
 	# Without alive_fn the ruleset must still terminate, on the clock.
-	var unwired := DotRulesElimination.make(1.0)
+	var unwired := GSRulesElimination.make(1.0)
 	unwired.warmup_sec = 0.1
 	unwired.countdown_sec = 0.1
 	unwired.min_players = 2
@@ -1125,9 +1125,9 @@ func _test_elimination() -> void:
 	fallback.add_player("bob", "Bob", 0, 2)
 	_advance(fallback, 1, 200)
 	_check(
-		fallback.last_outcome() == DotMatchRules.Outcome.TIME,
+		fallback.last_outcome() == GSMatchRules.Outcome.TIME,
 		"an unwired elimination ruleset still ends, on the clock",
-		DotMatchRules.Outcome.keys()[fallback.last_outcome()]
+		GSMatchRules.Outcome.keys()[fallback.last_outcome()]
 	)
 
 	node.queue_free()
@@ -1148,13 +1148,13 @@ func _test_kills_outside_live() -> void:
 	node.add_player("bob", "Bob", 0)
 
 	var tick := _advance(node, 1, 150)
-	_check(node.state == DotMatch.State.LIVE, "the round is live")
+	_check(node.state == GSMatch.State.LIVE, "the round is live")
 
 	for index in range(3):
 		node.report_kill("alice", "bob", &"rifle", tick)
 		tick = _advance(node, tick, 5)
 
-	_check(node.state == DotMatch.State.MATCH_END, "and ends on the score limit")
+	_check(node.state == GSMatch.State.MATCH_END, "and ends on the score limit")
 
 	var score_before := node.scoreboard.find("alice").score
 
@@ -1167,9 +1167,9 @@ func _test_kills_outside_live() -> void:
 		"a kill after the round has ended does not score"
 	)
 	_check(
-		node.state == DotMatch.State.MATCH_END,
+		node.state == GSMatch.State.MATCH_END,
 		"and does not disturb the state",
-		DotMatch.State.keys()[node.state]
+		GSMatch.State.keys()[node.state]
 	)
 
 	node.queue_free()
@@ -1179,8 +1179,8 @@ func _test_kills_outside_live() -> void:
 
 # --- Net sync --------------------------------------------------------------
 
-## A stand-in for the DotNetBehaviour a game writes. Plain properties, because that is
-## all [DotMatchNetSync] requires.
+## A stand-in for the GSNetBehaviour a game writes. Plain properties, because that is
+## all [GSMatchNetSync] requires.
 class FakeBehaviour extends Object:
 	var net_state: int = 0
 	var net_round: int = 0
@@ -1192,7 +1192,7 @@ class FakeBehaviour extends Object:
 func _test_net_sync() -> void:
 	_section("net sync")
 
-	_check(DotMatchNetSync.specs().size() == 5, "the bridge describes what replicates")
+	_check(GSMatchNetSync.specs().size() == 5, "the bridge describes what replicates")
 
 	var node := _make_match(_quick_rules(3))
 	node.start(0)
@@ -1201,15 +1201,15 @@ func _test_net_sync() -> void:
 	var tick := _advance(node, 1, 150)
 
 	var behaviour := FakeBehaviour.new()
-	DotMatchNetSync.pull(node, behaviour, tick)
+	GSMatchNetSync.pull(node, behaviour, tick)
 
-	_check(behaviour.net_state == int(DotMatch.State.LIVE), "the state replicates")
+	_check(behaviour.net_state == int(GSMatch.State.LIVE), "the state replicates")
 	_check(behaviour.net_round == 1, "and the round number")
 	_check(behaviour.net_ends_at > tick, "and an absolute end tick")
 
 	# The point of an absolute end tick: a client counts down from a clock it already
 	# shares, without the server sending the remaining time every frame.
-	var remaining := DotMatchNetSync.seconds_remaining(behaviour, tick, TICK_RATE)
+	var remaining := GSMatchNetSync.seconds_remaining(behaviour, tick, TICK_RATE)
 	_close(
 		remaining,
 		node.seconds_remaining(tick),
@@ -1217,15 +1217,15 @@ func _test_net_sync() -> void:
 		0.05
 	)
 
-	var later := DotMatchNetSync.seconds_remaining(behaviour, tick + 60, TICK_RATE)
+	var later := GSMatchNetSync.seconds_remaining(behaviour, tick + 60, TICK_RATE)
 	_close(later, remaining - 1.0, "and it counts down without another packet", 0.05)
 
 	# A state with no clock must report -1 on both sides rather than 0, so a HUD has
 	# one branch instead of two.
 	node.rules.time_limit_sec = 0.0
-	DotMatchNetSync.pull(node, behaviour, tick)
+	GSMatchNetSync.pull(node, behaviour, tick)
 	_check(
-		DotMatchNetSync.seconds_remaining(behaviour, tick, TICK_RATE) < 0.0,
+		GSMatchNetSync.seconds_remaining(behaviour, tick, TICK_RATE) < 0.0,
 		"a round with no clock reports no clock"
 	)
 
@@ -1238,17 +1238,17 @@ func _test_net_sync() -> void:
 func _test_team_spawn_tags() -> void:
 	_section("team spawn tags")
 
-	var node := _make_match(DotMatchRules.team_deathmatch(), true)
+	var node := _make_match(GSMatchRules.team_deathmatch(), true)
 	node.add_player("alice", "Alice", 0)
 	node.add_player("bob", "Bob", 0)
 
-	var red := DotSpawnPoint.make(Vector3(50.0, 0.0, 0.0))
+	var red := GSSpawnPoint.make(Vector3(50.0, 0.0, 0.0))
 	red.name = "RedSpawn"
 	red.tags = [&"red"]
-	var blue := DotSpawnPoint.make(Vector3(-50.0, 0.0, 0.0))
+	var blue := GSSpawnPoint.make(Vector3(-50.0, 0.0, 0.0))
 	blue.name = "BlueSpawn"
 	blue.tags = [&"blue"]
-	var anywhere := DotSpawnPoint.make(Vector3(0.0, 0.0, 50.0))
+	var anywhere := GSSpawnPoint.make(Vector3(0.0, 0.0, 50.0))
 	anywhere.name = "Anywhere"
 	for point in [red, blue, anywhere]:
 		add_child(point)

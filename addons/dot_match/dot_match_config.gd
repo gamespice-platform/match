@@ -1,19 +1,19 @@
 @tool
-class_name DotMatchConfig
-extends DotConfig
+class_name GSMatchConfig
+extends GSConfig
 
 ## Everything configurable about the match loop that is not a game mode's rules.
 ##
-## The split matters: [DotMatchRules] is what the mode is, and swapping it changes the
+## The split matters: [GSMatchRules] is what the mode is, and swapping it changes the
 ## game. This is how the server runs it, and it is the same regardless of mode.
 ##
-## Layered like every [DotConfig]: exported defaults, then a JSON file, then
+## Layered like every [GSConfig]: exported defaults, then a JSON file, then
 ## [code]DOT_MATCH_*[/code] environment variables, then [code]--match-*[/code]
 ## arguments.
 
 @export_group("Simulation")
 
-## Must match whatever drives [method DotMatch.tick]. Every duration in the rules is
+## Must match whatever drives [method GSMatch.tick]. Every duration in the rules is
 ## converted against it.
 @export_range(1, 240, 1) var tick_rate: int = 64
 
@@ -64,11 +64,11 @@ func cli_prefix() -> String:
 	return "--match-"
 
 
-func validate() -> DotResult:
+func validate() -> GSResult:
 	if tick_rate <= 0:
-		return DotResult.fail(DotError.CODE_INVALID, "tick_rate must be positive.")
+		return GSResult.fail(GSError.CODE_INVALID, "tick_rate must be positive.")
 
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 func describe_summary() -> String:

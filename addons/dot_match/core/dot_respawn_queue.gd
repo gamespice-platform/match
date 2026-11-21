@@ -1,4 +1,4 @@
-class_name DotRespawnQueue
+class_name GSRespawnQueue
 extends RefCounted
 
 ## Who is waiting to come back, and when.

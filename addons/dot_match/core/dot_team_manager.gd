@@ -1,5 +1,5 @@
 @tool
-class_name DotTeamManager
+class_name GSTeamManager
 extends Node
 
 ## Who is on which side, and keeping the sides even.
@@ -29,7 +29,7 @@ signal balanced(key: String, to_team: int)
 ## because the ids matched and only the names were stale (`[team-reindex-1]`). Editing
 ## the array in place (`teams.append`) does not pass through here; call [method reindex]
 ## after doing that.
-@export var teams: Array[DotTeam] = []:
+@export var teams: Array[GSTeam] = []:
 	set(value):
 		teams = value
 		_indexed = false
@@ -61,7 +61,7 @@ signal balanced(key: String, to_team: int)
 @export_range(0, 32, 1) var default_team: int = 0
 
 ## Where the scores and the roster live. Required.
-var scoreboard: DotScoreboard = null
+var scoreboard: GSScoreboard = null
 
 ## key -> tick they joined their current team, for the grace period.
 var _joined_at: Dictionary = {}
@@ -83,7 +83,7 @@ func _ensure_indexed() -> void:
 		reindex()
 
 
-func team(id: int) -> DotTeam:
+func team(id: int) -> GSTeam:
 	_ensure_indexed()
 	return _by_id.get(id)
 
@@ -121,7 +121,7 @@ func team_of(key: String) -> int:
 	return record.team if record != null else 0
 
 
-## What [DotDamageResolver.team_of] wants. Bind this and friendly fire works.
+## What [GSDamageResolver.team_of] wants. Bind this and friendly fire works.
 func team_lookup() -> Callable:
 	return func(id: Variant) -> int:
 		return team_of(str(id))
@@ -153,9 +153,9 @@ func smallest_team() -> int:
 
 
 ## Puts a player on a team. Returns the team they ended up on, or 0.
-func assign(key: String, tick: int, wanted: int = 0) -> DotResult:
+func assign(key: String, tick: int, wanted: int = 0) -> GSResult:
 	if scoreboard == null:
-		return DotResult.fail(DotError.CODE_STATE, "No scoreboard.")
+		return GSResult.fail(GSError.CODE_STATE, "No scoreboard.")
 
 	var target := wanted
 
@@ -166,13 +166,13 @@ func assign(key: String, tick: int, wanted: int = 0) -> DotResult:
 		var chosen := team(target)
 
 		if chosen == null:
-			return DotResult.fail(
-				DotError.CODE_INVALID, "No team %d." % target
+			return GSResult.fail(
+				GSError.CODE_INVALID, "No team %d." % target
 			)
 
 		if not chosen.is_spectator and not _has_room(target, key):
-			return DotResult.fail(
-				DotError.CODE_FORBIDDEN,
+			return GSResult.fail(
+				GSError.CODE_FORBIDDEN,
 				"Team %s is full." % chosen.display_name
 			)
 
@@ -181,27 +181,27 @@ func assign(key: String, tick: int, wanted: int = 0) -> DotResult:
 			and not chosen.is_spectator
 			and _would_unbalance(target, key)
 		):
-			return DotResult.fail(
-				DotError.CODE_FORBIDDEN,
+			return GSResult.fail(
+				GSError.CODE_FORBIDDEN,
 				"Team %s would be too far ahead in numbers." % chosen.display_name
 			)
 	else:
 		target = default_team if default_team > 0 else smallest_team()
 
 	if target <= 0:
-		return DotResult.fail(
-			DotError.CODE_STATE, "There is no team with room."
+		return GSResult.fail(
+			GSError.CODE_STATE, "There is no team with room."
 		)
 
 	return _place(key, target, tick, false)
 
 
-func _place(key: String, target: int, tick: int, forced: bool) -> DotResult:
+func _place(key: String, target: int, tick: int, forced: bool) -> GSResult:
 	var record := scoreboard.record_for(key)
 	var previous := record.team
 
 	if previous == target:
-		return DotResult.success(target)
+		return GSResult.success(target)
 
 	record.team = target
 	record.spectating = team(target) != null and team(target).is_spectator
@@ -213,7 +213,7 @@ func _place(key: String, target: int, tick: int, forced: bool) -> DotResult:
 	if forced:
 		balanced.emit(key, target)
 
-	return DotResult.success(target)
+	return GSResult.success(target)
 
 
 func _has_room(id: int, key: String) -> bool:
@@ -305,7 +305,7 @@ func rebalance(tick: int) -> int:
 		if victim == "":
 			# Everyone on the larger team is inside their grace period. Leaving it
 			# uneven for now is better than switching someone who just switched.
-			DotLog.debug(
+			GSLog.debug(
 				CHANNEL, "cannot balance: every candidate is inside the grace period"
 			)
 			break
@@ -360,17 +360,17 @@ func forget(key: String) -> void:
 	_joined_at.erase(key)
 
 
-func validate() -> DotResult:
+func validate() -> GSResult:
 	reindex()
 
 	if teams.is_empty():
-		return DotResult.success(null)
+		return GSResult.success(null)
 
 	var seen := {}
 
 	for team_res in teams:
 		if team_res == null:
-			return DotResult.fail(DotError.CODE_INVALID, "A null team.")
+			return GSResult.fail(GSError.CODE_INVALID, "A null team.")
 
 		var res := team_res.validate()
 
@@ -378,13 +378,13 @@ func validate() -> DotResult:
 			return res
 
 		if seen.has(team_res.id):
-			return DotResult.fail(
-				DotError.CODE_INVALID, "Team id %d is declared twice." % team_res.id
+			return GSResult.fail(
+				GSError.CODE_INVALID, "Team id %d is declared twice." % team_res.id
 			)
 
 		seen[team_res.id] = true
 
-	return DotResult.success(teams.size())
+	return GSResult.success(teams.size())
 
 
 func describe() -> Dictionary:

@@ -45,19 +45,19 @@ func _group(title: String) -> void:
 
 # Fixtures
 
-func _make_match(rules: DotMatchRules, with_teams: bool = false) -> DotMatch:
-	var node := DotMatch.new()
+func _make_match(rules: GSMatchRules, with_teams: bool = false) -> GSMatch:
+	var node := GSMatch.new()
 	node.register_service = false
 	node.rules = rules
-	node.config = DotMatchConfig.new()
+	node.config = GSMatchConfig.new()
 	node.config.tick_rate = TICK_RATE
 	node.config.auto_start = false
 	node.config.log_transitions = false
 	node.config.idle_seconds = 0.0
 
 	if with_teams:
-		var manager := DotTeamManager.new()
-		manager.teams = DotTeam.standard_pair()
+		var manager := GSTeamManager.new()
+		manager.teams = GSTeam.standard_pair()
 		node.teams = manager
 		node.add_child(manager)
 
@@ -65,8 +65,8 @@ func _make_match(rules: DotMatchRules, with_teams: bool = false) -> DotMatch:
 	return node
 
 
-func _quick_rules(limit: int = 3) -> DotMatchRules:
-	var rules := DotMatchRules.deathmatch(limit)
+func _quick_rules(limit: int = 3) -> GSMatchRules:
+	var rules := GSMatchRules.deathmatch(limit)
 	rules.warmup_sec = 1.0
 	rules.countdown_sec = 0.5
 	rules.time_limit_sec = 10.0
@@ -78,17 +78,17 @@ func _quick_rules(limit: int = 3) -> DotMatchRules:
 
 
 ## Runs the match forward, one tick at a time, from [param from] for [param ticks].
-func _advance(node: DotMatch, from: int, ticks: int) -> int:
+func _advance(node: GSMatch, from: int, ticks: int) -> int:
 	for offset in range(ticks):
 		node.tick(from + offset)
 	return from + ticks
 
 
-func _make_spawns(count: int, spacing: float = 10.0) -> Array[DotSpawnPoint]:
-	var out: Array[DotSpawnPoint] = []
+func _make_spawns(count: int, spacing: float = 10.0) -> Array[GSSpawnPoint]:
+	var out: Array[GSSpawnPoint] = []
 
 	for index in range(count):
-		var point := DotSpawnPoint.make(Vector3(float(index) * spacing, 0.0, 0.0))
+		var point := GSSpawnPoint.make(Vector3(float(index) * spacing, 0.0, 0.0))
 		point.name = "Spawn%02d" % index
 		point.cooldown_ticks = 60
 		add_child(point)
@@ -97,7 +97,7 @@ func _make_spawns(count: int, spacing: float = 10.0) -> Array[DotSpawnPoint]:
 	return out
 
 
-func _free_spawns(points: Array[DotSpawnPoint]) -> void:
+func _free_spawns(points: Array[GSSpawnPoint]) -> void:
 	for point in points:
 		point.queue_free()
 		remove_child(point)

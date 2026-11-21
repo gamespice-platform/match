@@ -5,33 +5,33 @@ extends EditorPlugin
 ##
 ## No autoload, for the family's reason: a process may run two matches at once — which
 ## is what this project's own self-test does — and a singleton match makes that
-## impossible. [DotMatch] registers itself in [DotRegistry] instead.
+## impossible. [GSMatch] registers itself in [GSRegistry] instead.
 
 const _ICON := "res://addons/dot_match/icon_placeholder.svg"
 
 const _TYPES := [
 	[
-		"DotMatch",
+		"GSMatch",
 		"Node",
 		"res://addons/dot_match/dot_match.gd",
 	],
 	[
-		"DotScoreboard",
+		"GSScoreboard",
 		"Node",
 		"res://addons/dot_match/core/dot_scoreboard.gd",
 	],
 	[
-		"DotTeamManager",
+		"GSTeamManager",
 		"Node",
 		"res://addons/dot_match/core/dot_team_manager.gd",
 	],
 	[
-		"DotKillFeed",
+		"GSKillFeed",
 		"Node",
 		"res://addons/dot_match/core/dot_kill_feed.gd",
 	],
 	[
-		"DotSpawnPoint",
+		"GSSpawnPoint",
 		"Node3D",
 		"res://addons/dot_match/spawn/dot_spawn_point.gd",
 	],

@@ -1,5 +1,5 @@
 @tool
-class_name DotKillFeed
+class_name GSKillFeed
 extends Node
 
 ## The last few kills, bounded.
@@ -9,7 +9,7 @@ extends Node
 ## more than any HUD shows and enough for a "what just happened" panel.
 
 # No log channel: a bounded ring of kills that emits entry_added. The kill itself is
-# decided in DotMatch.report_kill, which logs it; a second line here is the same kill.
+# decided in GSMatch.report_kill, which logs it; a second line here is the same kill.
 
 signal entry_added(entry: Entry)
 
@@ -76,8 +76,8 @@ func add(entry: Entry) -> void:
 ## disconnected. Handling that here rather than at the call site is what stops the
 ## "killed by someone who has left" case being a null dereference.
 func add_kill(
-	killer: DotPlayerScore,
-	victim: DotPlayerScore,
+	killer: GSPlayerScore,
+	victim: GSPlayerScore,
 	cause: StringName,
 	tick: int,
 	headshot: bool = false

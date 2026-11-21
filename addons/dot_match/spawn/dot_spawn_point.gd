@@ -1,11 +1,11 @@
 @tool
-class_name DotSpawnPoint
+class_name GSSpawnPoint
 extends Node3D
 
 ## One place a player can appear.
 ##
 ## A marker with a team, some tags and a cooldown. It does no selection of its own —
-## that is [DotSpawnSelector], because choosing between points needs to see all of
+## that is [GSSpawnSelector], because choosing between points needs to see all of
 ## them and the danger around each.
 
 ## Which team may use it. Zero means anyone.
@@ -35,8 +35,8 @@ var last_used_tick: int = -1
 var last_user: String = ""
 
 
-static func make(position: Vector3, team_id: int = 0) -> DotSpawnPoint:
-	var point := DotSpawnPoint.new()
+static func make(position: Vector3, team_id: int = 0) -> GSSpawnPoint:
+	var point := GSSpawnPoint.new()
 	point.position = position
 	point.team = team_id
 	return point
@@ -89,4 +89,4 @@ func describe() -> Dictionary:
 
 
 func _to_string() -> String:
-	return "DotSpawnPoint(%s, team %d)" % [name, team]
+	return "GSSpawnPoint(%s, team %d)" % [name, team]

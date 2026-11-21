@@ -1,4 +1,4 @@
-class_name DotPlayerScore
+class_name GSPlayerScore
 extends RefCounted
 
 ## One player's record for one match.
@@ -26,7 +26,7 @@ var assists: int = 0
 var suicides: int = 0
 
 ## Team-mates killed. Also in [member kills] unless the rules say otherwise — see
-## [member DotMatchRules.friendly_kills_count].
+## [member GSMatchRules.friendly_kills_count].
 var team_kills: int = 0
 
 ## Mode-specific points. What a win condition actually reads: a capture mode scores by
@@ -47,7 +47,7 @@ var damage_taken: float = 0.0
 var last_active_tick: int = 0
 
 ## Whether they are connected. A disconnected player's record is kept for the rest of
-## the match so a reconnect restores it — see [DotScoreboard].
+## the match so a reconnect restores it — see [GSScoreboard].
 var present: bool = true
 
 ## Whether they are on a spectator team. Excluded from win conditions and balance.
@@ -57,8 +57,8 @@ var spectating: bool = false
 var extra: Dictionary = {}
 
 
-static func make(p_key: String, p_name: String = "") -> DotPlayerScore:
-	var record := DotPlayerScore.new()
+static func make(p_key: String, p_name: String = "") -> GSPlayerScore:
+	var record := GSPlayerScore.new()
 	record.key = p_key
 	record.display_name = p_name if p_name != "" else p_key.substr(0, 8)
 	return record
@@ -131,4 +131,4 @@ func describe() -> Dictionary:
 
 
 func _to_string() -> String:
-	return "DotPlayerScore(%s %d/%d/%d)" % [display_name, kills, deaths, assists]
+	return "GSPlayerScore(%s %d/%d/%d)" % [display_name, kills, deaths, assists]

@@ -1,5 +1,5 @@
 @tool
-class_name DotScoreboard
+class_name GSScoreboard
 extends Node
 
 ## Who is playing and how they are doing.
@@ -9,19 +9,19 @@ extends Node
 ## scoreboard that rewards rage-quitting and punishes a bad connection. The record is
 ## marked absent and swept when the match ends.
 ##
-## [b]Keyed by a stable player key, never a peer id.[/b] See [DotPlayerScore].
+## [b]Keyed by a stable player key, never a peer id.[/b] See [GSPlayerScore].
 
 const CHANNEL := "match.score"
 
 ## A record was created for a key that had none.
-signal player_added(record: DotPlayerScore)
+signal player_added(record: GSPlayerScore)
 
 ## A player disconnected. The record is kept.
-signal player_left(record: DotPlayerScore)
+signal player_left(record: GSPlayerScore)
 
 ## Any counter changed. Coalesced per call, not per field, so a HUD binding to it
 ## refreshes once per event rather than five times.
-signal score_changed(record: DotPlayerScore)
+signal score_changed(record: GSPlayerScore)
 
 @export_group("Limits")
 
@@ -36,7 +36,7 @@ var evicted: int = 0
 var _evict_warn_ms: int = -1
 var _evict_unwarned: int = 0
 
-## key -> [DotPlayerScore].
+## key -> [GSPlayerScore].
 var _records: Dictionary = {}
 
 ## team id -> accumulated team score.
@@ -48,8 +48,8 @@ var _team_scores: Dictionary = {}
 ## Creating on lookup rather than requiring an explicit add: every call site otherwise
 ## has to handle "the player is not on the scoreboard yet", and the one that forgets
 ## silently drops a kill.
-func record_for(key: String, display_name: String = "") -> DotPlayerScore:
-	var record: DotPlayerScore = _records.get(key)
+func record_for(key: String, display_name: String = "") -> GSPlayerScore:
+	var record: GSPlayerScore = _records.get(key)
 
 	if record != null:
 		if display_name != "":
@@ -59,13 +59,13 @@ func record_for(key: String, display_name: String = "") -> DotPlayerScore:
 	if max_records > 0 and _records.size() >= max_records:
 		_evict_absent()
 
-	record = DotPlayerScore.make(key, display_name)
+	record = GSPlayerScore.make(key, display_name)
 	_records[key] = record
 	player_added.emit(record)
 	return record
 
 
-func find(key: String) -> DotPlayerScore:
+func find(key: String) -> GSPlayerScore:
 	return _records.get(key)
 
 
@@ -74,7 +74,7 @@ func has(key: String) -> bool:
 
 
 ## Marks a player present. What a join and a reconnect both call.
-func join(key: String, display_name: String = "", team: int = 0) -> DotPlayerScore:
+func join(key: String, display_name: String = "", team: int = 0) -> GSPlayerScore:
 	var record := record_for(key, display_name)
 	record.present = true
 
@@ -85,7 +85,7 @@ func join(key: String, display_name: String = "", team: int = 0) -> DotPlayerSco
 
 
 func leave(key: String) -> void:
-	var record: DotPlayerScore = _records.get(key)
+	var record: GSPlayerScore = _records.get(key)
 
 	if record == null:
 		return
@@ -107,7 +107,7 @@ func _evict_absent() -> void:
 	var absent: Array[String] = []
 
 	for key in _records.keys():
-		var record: DotPlayerScore = _records[key]
+		var record: GSPlayerScore = _records[key]
 		if not record.present:
 			absent.append(key)
 
@@ -116,8 +116,8 @@ func _evict_absent() -> void:
 		return
 
 	absent.sort_custom(func(a: String, b: String) -> bool:
-		return (_records[a] as DotPlayerScore).last_active_tick \
-			< (_records[b] as DotPlayerScore).last_active_tick
+		return (_records[a] as GSPlayerScore).last_active_tick \
+			< (_records[b] as GSPlayerScore).last_active_tick
 	)
 
 	_records.erase(absent[0])
@@ -131,7 +131,7 @@ func _warn_full(text: String) -> void:
 	if _evict_warn_ms >= 0 and now_ms - _evict_warn_ms < 10000:
 		return
 	_evict_warn_ms = now_ms
-	DotLog.warn(CHANNEL, text, {"records": _records.size(), "max_records": max_records,
+	GSLog.warn(CHANNEL, text, {"records": _records.size(), "max_records": max_records,
 		"evicted_since_last_warning": _evict_unwarned, "evicted_total": evicted})
 	_evict_unwarned = 0
 
@@ -151,7 +151,7 @@ func note_kill(
 	points: int = 1,
 	suicide_penalty: int = -1,
 	friendly_penalty: int = -1
-) -> DotPlayerScore:
+) -> GSPlayerScore:
 	var victim := record_for(victim_key)
 	victim.note_death()
 	victim.last_active_tick = tick
@@ -242,23 +242,23 @@ func set_team(key: String, team: int) -> void:
 
 # --- Queries ---------------------------------------------------------------
 
-func players() -> Array[DotPlayerScore]:
-	var out: Array[DotPlayerScore] = []
+func players() -> Array[GSPlayerScore]:
+	var out: Array[GSPlayerScore] = []
 	for key in _records.keys():
 		out.append(_records[key])
 	return out
 
 
-func present_players() -> Array[DotPlayerScore]:
-	var out: Array[DotPlayerScore] = []
+func present_players() -> Array[GSPlayerScore]:
+	var out: Array[GSPlayerScore] = []
 	for record in players():
 		if record.present and not record.spectating:
 			out.append(record)
 	return out
 
 
-func players_on(team: int) -> Array[DotPlayerScore]:
-	var out: Array[DotPlayerScore] = []
+func players_on(team: int) -> Array[GSPlayerScore]:
+	var out: Array[GSPlayerScore] = []
 	for record in present_players():
 		if record.team == team:
 			out.append(record)
@@ -275,10 +275,10 @@ func present_count() -> int:
 ## players tied on everything would otherwise be ordered by dictionary iteration order,
 ## which differs between a server and a client and produces a scoreboard where players
 ## visibly swap places for no reason.
-func ranked() -> Array[DotPlayerScore]:
+func ranked() -> Array[GSPlayerScore]:
 	var out := players()
 
-	out.sort_custom(func(a: DotPlayerScore, b: DotPlayerScore) -> bool:
+	out.sort_custom(func(a: GSPlayerScore, b: GSPlayerScore) -> bool:
 		if a.score != b.score:
 			return a.score > b.score
 		if a.kills != b.kills:
@@ -292,7 +292,7 @@ func ranked() -> Array[DotPlayerScore]:
 
 
 ## The player in front, or null when nobody is.
-func leader() -> DotPlayerScore:
+func leader() -> GSPlayerScore:
 	var order := ranked()
 	return null if order.is_empty() else order[0]
 
@@ -331,7 +331,7 @@ func reset_scores() -> void:
 ## Drops absent records and zeroes everything. What a match end does.
 func reset_match() -> void:
 	for key in _records.keys():
-		if not (_records[key] as DotPlayerScore).present:
+		if not (_records[key] as GSPlayerScore).present:
 			_records.erase(key)
 
 	reset_scores()

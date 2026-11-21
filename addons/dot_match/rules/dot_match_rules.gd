@@ -1,10 +1,10 @@
 @tool
-class_name DotMatchRules
+class_name GSMatchRules
 extends Resource
 
 ## What winning means, and what a kill is worth.
 ##
-## Subclass this for a mode GameSpice Match does not ship. [DotMatch] calls the four
+## Subclass this for a mode GameSpice Match does not ship. [GSMatch] calls the four
 ## [code]_[/code]-prefixed methods and nothing else, so a mode can change every rule
 ## without touching the state machine.
 ##
@@ -90,7 +90,7 @@ enum Outcome {
 @export_range(0.0, 30.0, 0.5) var countdown_sec: float = 5.0
 
 ## Hold every player still during the countdown. GameSpice Match owns no bodies: it reports
-## [method DotMatch.is_frozen] and the game freezes its controllers.
+## [method GSMatch.is_frozen] and the game freezes its controllers.
 @export var freeze_during_countdown: bool = true
 
 ## Seconds a round-end screen is shown before the next round.
@@ -106,7 +106,7 @@ enum Outcome {
 ## and for a test that drives the loop with no players at all.
 ##
 ## This is a mode's rule rather than a server setting, because [member min_players] is:
-## splitting the two across [DotMatchConfig] would leave a threshold in one file and
+## splitting the two across [GSMatchConfig] would leave a threshold in one file and
 ## the decision about what to do at it in another.
 @export var pause_when_empty: bool = true
 
@@ -114,8 +114,8 @@ enum Outcome {
 @export var team_based: bool = false
 
 
-static func deathmatch(limit: int = 30) -> DotMatchRules:
-	var rules := DotMatchRules.new()
+static func deathmatch(limit: int = 30) -> GSMatchRules:
+	var rules := GSMatchRules.new()
 	rules.id = &"deathmatch"
 	rules.display_name = "Deathmatch"
 	rules.score_limit = limit
@@ -123,8 +123,8 @@ static func deathmatch(limit: int = 30) -> DotMatchRules:
 	return rules
 
 
-static func team_deathmatch(limit: int = 75) -> DotMatchRules:
-	var rules := DotMatchRules.new()
+static func team_deathmatch(limit: int = 75) -> GSMatchRules:
+	var rules := GSMatchRules.new()
 	rules.id = &"tdm"
 	rules.display_name = "Team Deathmatch"
 	rules.score_limit = limit
@@ -139,8 +139,8 @@ static func team_deathmatch(limit: int = 75) -> DotMatchRules:
 ##
 ## [param killer] is null for a world death.
 func _points_for_kill(
-	_killer: DotPlayerScore,
-	_victim: DotPlayerScore
+	_killer: GSPlayerScore,
+	_victim: GSPlayerScore
 ) -> int:
 	return kill_points
 
@@ -150,8 +150,8 @@ func _points_for_kill(
 ## Called after every scoring event and once per second of clock. Return
 ## [constant Outcome.NONE] to continue.
 func _round_outcome(
-	scoreboard: DotScoreboard,
-	teams: DotTeamManager,
+	scoreboard: GSScoreboard,
+	teams: GSTeamManager,
 	elapsed_sec: float
 ) -> Outcome:
 	if score_limit > 0:
@@ -171,10 +171,10 @@ func _round_outcome(
 ## Who won the round. A team id in team mode, 0 for a draw.
 ##
 ## In a free-for-all this is not a team id — it is meaningless, and the winner is
-## [method DotScoreboard.leader]. Returning 0 there is correct, not a failure.
+## [method GSScoreboard.leader]. Returning 0 there is correct, not a failure.
 func _round_winner(
-	scoreboard: DotScoreboard,
-	teams: DotTeamManager
+	scoreboard: GSScoreboard,
+	teams: GSTeamManager
 ) -> int:
 	if not team_based or teams == null or not teams.is_team_mode():
 		return 0
@@ -198,13 +198,13 @@ func _round_winner(
 
 ## Seconds before [param victim] respawns. Override for a mode with escalating
 ## penalties or a wave timer.
-func _respawn_delay(_victim: DotPlayerScore) -> float:
+func _respawn_delay(_victim: GSPlayerScore) -> float:
 	return respawn_delay_sec
 
 
-# --- Called by DotMatch ----------------------------------------------------
+# --- Called by GSMatch ----------------------------------------------------
 
-func points_for_kill(killer: DotPlayerScore, victim: DotPlayerScore) -> int:
+func points_for_kill(killer: GSPlayerScore, victim: GSPlayerScore) -> int:
 	if killer == null or (victim != null and killer.key == victim.key):
 		return suicide_points
 
@@ -215,28 +215,28 @@ func points_for_kill(killer: DotPlayerScore, victim: DotPlayerScore) -> int:
 
 
 func round_outcome(
-	scoreboard: DotScoreboard,
-	teams: DotTeamManager,
+	scoreboard: GSScoreboard,
+	teams: GSTeamManager,
 	elapsed_sec: float
 ) -> Outcome:
 	return _round_outcome(scoreboard, teams, elapsed_sec)
 
 
-func round_winner(scoreboard: DotScoreboard, teams: DotTeamManager) -> int:
+func round_winner(scoreboard: GSScoreboard, teams: GSTeamManager) -> int:
 	return _round_winner(scoreboard, teams)
 
 
-func respawn_delay(victim: DotPlayerScore) -> float:
+func respawn_delay(victim: GSPlayerScore) -> float:
 	return _respawn_delay(victim)
 
 
-func validate() -> DotResult:
+func validate() -> GSResult:
 	if score_limit <= 0 and time_limit_sec <= 0.0:
 		# A round with neither ends only when a game's own subclass says so, which is
 		# legitimate — an elimination mode does exactly that. It is also what a
 		# half-configured ruleset looks like, and one is a mode and the other is a
 		# server that never changes map.
-		DotLog.warn(
+		GSLog.warn(
 			"match.rules",
 			"a ruleset with no score limit and no time limit; "
 			+ "only a custom outcome can end this round",
@@ -244,7 +244,7 @@ func validate() -> DotResult:
 		)
 
 	if friendly_kills_count:
-		DotLog.warn(
+		GSLog.warn(
 			"match.rules",
 			"friendly kills count towards the kill total; "
 			+ "this makes farming team-mates a way up the scoreboard",
@@ -252,13 +252,13 @@ func validate() -> DotResult:
 		)
 
 	if respawn_disabled and rounds_to_win <= 1 and time_limit_sec <= 0.0:
-		return DotResult.fail(
-			DotError.CODE_INVALID,
+		return GSResult.fail(
+			GSError.CODE_INVALID,
 			"Respawning is off in a single round with no clock, so a dead player "
 			+ "never returns and the match never ends."
 		)
 
-	return DotResult.success(null)
+	return GSResult.success(null)
 
 
 func describe() -> Dictionary:
@@ -274,4 +274,4 @@ func describe() -> Dictionary:
 
 
 func _to_string() -> String:
-	return "DotMatchRules(%s)" % id
+	return "GSMatchRules(%s)" % id
