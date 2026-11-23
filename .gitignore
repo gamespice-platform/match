@@ -24,3 +24,12 @@ Thumbs.db
 /addons/gs_player_class
 /addons/gs_team
 /addons/gs_user
+
+# Sibling addons linked for local suites (absolute links must never be tracked; CI resolves them from addons.lock):
+/addons/gs_auth
+/addons/gs_cloud
+/addons/gs_moderation
+/addons/gs_player
+/addons/gs_spectate
+/addons/gs_sql
+/addons/gs_voice
