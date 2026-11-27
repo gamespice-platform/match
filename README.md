@@ -2,7 +2,7 @@
 
 The match loop for a Godot 4 multiplayer game: warmup, rounds, scoring, teams, spawning and respawning. Everything is counted in ticks and driven by one call, so a server's round clock and its netcode agree on what time it is. It needs only [GameSpice Core](https://github.com/gamespice-platform/core). Part of TMC's open source [**GameSpice**](https://gamespice.net) collection (MIT licence).
 
-> Built with Claude Code. Every addon has a headless test suite and the suites pass, but little of this has met real players yet. Please report rough edges.
+> gs-match is a [GameSpice](https://gamespice.net) addon under MIT, built with Claude Code, with a headless suite at `examples/match_selftest.tscn`. The games in [Zee's Games](https://zeesgames.com) are built on the GameSpice addons and run on live servers, and most of their rounds are driven by it.
 
 ## Install
 
@@ -113,6 +113,25 @@ godot --headless --path . res://examples/match_selftest.tscn
 ```
 
 All offline. Exits non-zero on any failure.
+
+## Used by
+
+These games vendor it:
+
+- [Fatal Contact](https://zeesgames.com/fatal-contact)
+- [Airdrift](https://zeesgames.com/airdrift)
+- [Playlot](https://zeesgames.com/playlot)
+- [Hungario](https://zeesgames.com/hungario)
+- [Buses From Hell](https://zeesgames.com/buses-from-hell)
+- [Smash Copter](https://zeesgames.com/smash-copter)
+- [Zombie Zone](https://zeesgames.com/zombie-zone)
+- [Hide n Seek](https://zeesgames.com/hide-n-seek)
+- [Prop Hunt](https://zeesgames.com/prop-hunt)
+- [Murder Mystery](https://zeesgames.com/murder-mystery)
+- [Deathrun](https://zeesgames.com/deathrun)
+- [Wipeout](https://zeesgames.com/wipeout)
+
+The whole collection is at [zeesgames.com](https://zeesgames.com).
 
 ## Licence
 
