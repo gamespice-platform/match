@@ -244,14 +244,17 @@ func set_team(key: String, team: int) -> void:
 
 func players() -> Array[GSPlayerScore]:
 	var out: Array[GSPlayerScore] = []
-	for key in _records.keys():
+	for key: String in _records:
 		out.append(_records[key])
 	return out
 
 
+# The queries below walk the records in place (insertion order, as keys() would) instead of building
+# players() first: they run every tick from the match, the team manager and the rules.
 func present_players() -> Array[GSPlayerScore]:
 	var out: Array[GSPlayerScore] = []
-	for record in players():
+	for key: String in _records:
+		var record: GSPlayerScore = _records[key]
 		if record.present and not record.spectating:
 			out.append(record)
 	return out
@@ -259,14 +262,30 @@ func present_players() -> Array[GSPlayerScore]:
 
 func players_on(team: int) -> Array[GSPlayerScore]:
 	var out: Array[GSPlayerScore] = []
-	for record in present_players():
-		if record.team == team:
+	for key: String in _records:
+		var record: GSPlayerScore = _records[key]
+		if record.present and not record.spectating and record.team == team:
 			out.append(record)
 	return out
 
 
+## How many present, playing records are on [param team]; [method players_on] without the list.
+func count_on(team: int) -> int:
+	var n := 0
+	for key: String in _records:
+		var record: GSPlayerScore = _records[key]
+		if record.present and not record.spectating and record.team == team:
+			n += 1
+	return n
+
+
 func present_count() -> int:
-	return present_players().size()
+	var n := 0
+	for key: String in _records:
+		var record: GSPlayerScore = _records[key]
+		if record.present and not record.spectating:
+			n += 1
+	return n
 
 
 ## Records sorted for display: score, then kills, then fewest deaths, then key.
@@ -300,8 +319,10 @@ func leader() -> GSPlayerScore:
 ## The highest score any single player has. For a score-limit win condition.
 func best_score() -> int:
 	var best := 0
-	for record in present_players():
-		best = maxi(best, record.score)
+	for key: String in _records:
+		var record: GSPlayerScore = _records[key]
+		if record.present and not record.spectating:
+			best = maxi(best, record.score)
 	return best
 
 

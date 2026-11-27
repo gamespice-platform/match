@@ -811,7 +811,8 @@ func report_damage(dealer_key: String, victim_key: String, amount: float) -> voi
 # --- Spawning --------------------------------------------------------------
 
 func _drain_respawns(current_tick: int) -> void:
-	if state != State.LIVE and state != State.COUNTDOWN:
+	# Nobody waiting is the usual tick: skip building take_ready's empty list.
+	if (state != State.LIVE and state != State.COUNTDOWN) or respawns.waiting_count() == 0:
 		return
 
 	for key in respawns.take_ready(current_tick):

@@ -61,7 +61,7 @@ func seconds_remaining(key: String, tick: int) -> float:
 func take_ready(tick: int) -> Array[String]:
 	var out: Array[String] = []
 
-	for key in _waiting.keys():
+	for key: String in _waiting:
 		if tick >= int(_waiting[key]):
 			out.append(key)
 

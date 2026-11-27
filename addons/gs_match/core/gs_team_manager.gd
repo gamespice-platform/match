@@ -111,7 +111,7 @@ func is_team_mode() -> bool:
 
 
 func count_on(id: int) -> int:
-	return scoreboard.players_on(id).size() if scoreboard != null else 0
+	return scoreboard.count_on(id) if scoreboard != null else 0
 
 
 func team_of(key: String) -> int:
