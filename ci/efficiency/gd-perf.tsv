@@ -21,7 +21,6 @@ addons/gs_match/core/gs_scoreboard.gd::present_players::alloc	1
 addons/gs_match/core/gs_scoreboard.gd::team_scores::alloc	1
 addons/gs_match/core/gs_scoreboard.gd::team_scores::untyped_array	1
 addons/gs_match/core/gs_team.gd::describe::untyped_array	1
-addons/gs_match/core/gs_team.gd::standard_pair::alloc	1
 addons/gs_match/core/gs_team_manager.gd::<members>::untyped_array	2
 addons/gs_match/core/gs_team_manager.gd::assign::string_build	3
 addons/gs_match/core/gs_team_manager.gd::describe::untyped_array	1
@@ -29,8 +28,6 @@ addons/gs_match/core/gs_team_manager.gd::is_balanced::alloc	1
 addons/gs_match/core/gs_team_manager.gd::playing_team_ids::alloc	1
 addons/gs_match/core/gs_team_manager.gd::team_ids::alloc	1
 addons/gs_match/core/gs_team_manager.gd::team_lookup::string_build	1
-addons/gs_match/core/gs_team_manager.gd::validate::alloc	1
-addons/gs_match/core/gs_team_manager.gd::validate::string_build	1
 addons/gs_match/gs_match.gd::<members>::untyped_array	1
 addons/gs_match/gs_match.gd::_check_idle::emit_in_loop	1
 addons/gs_match/gs_match.gd::_drain_respawns::emit_in_loop	1
@@ -38,15 +35,9 @@ addons/gs_match/gs_match.gd::_threats_against::alloc	1
 addons/gs_match/gs_match.gd::_threats_against::dynamic_call	1
 addons/gs_match/gs_match.gd::_transition::alloc	1
 addons/gs_match/gs_match.gd::describe::untyped_array	1
-addons/gs_match/gs_match.gd::refresh_spawns::alloc	3
-addons/gs_match/gs_match.gd::refresh_spawns::singleton_lookup	1
 addons/gs_match/net/gs_match_net_sync.gd::is_frozen::dynamic_call	2
-addons/gs_match/net/gs_match_net_sync.gd::properties::alloc	1
 addons/gs_match/net/gs_match_net_sync.gd::pull::dynamic_call	5
-addons/gs_match/net/gs_match_net_sync.gd::specs::alloc	6
 addons/gs_match/rules/gs_match_rules.gd::describe::untyped_array	1
-addons/gs_match/rules/gs_match_rules.gd::validate::alloc	2
-addons/gs_match/rules/gs_match_rules.gd::validate::string_build	3
 addons/gs_match/spawn/gs_spawn_point.gd::describe::untyped_array	1
 addons/gs_match/spawn/gs_spawn_selector.gd::_danger_at::dynamic_call	1
 addons/gs_match/spawn/gs_spawn_selector.gd::describe::untyped_array	1
